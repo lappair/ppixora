@@ -1,0 +1,139 @@
+.top-page {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.top-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.top-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.top-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.top-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--surface-2);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+}
+
+.top-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+}
+
+/* ─── Hashtags ───────────────────────────── */
+.hashtag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hashtag-card {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  background: var(--surface);
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-2);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.hashtag-card:hover {
+  transform: translateX(4px);
+  border-color: var(--accent-dim);
+}
+
+.hashtag-rank {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--accent-dim);
+  width: 24px;
+  text-align: center;
+}
+
+.hashtag-info h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 0.2rem 0;
+  color: var(--text);
+}
+
+.hashtag-info p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ─── Top Flashes Grid ───────────────────── */
+.top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.top-flash-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  border: 1px solid var(--surface-2);
+  background: var(--surface);
+}
+
+.top-flash-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.top-flash-card:hover img {
+  transform: scale(1.05);
+}
+
+.top-flash-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(11, 31, 58, 0.85), transparent);
+  padding: 1.5rem 0.75rem 0.75rem;
+  display: flex;
+  align-items: flex-end;
+}
+
+.top-flash-author {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
