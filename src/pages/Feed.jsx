@@ -206,7 +206,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
                 </div>
 
                 <div className="post-meta">
-                  <div className="post-author">
+                  <div className="post-author" style={{cursor: "pointer"}} onClick={() => navigate(`#/user/${post.userId}`)}>
                     <div className="post-avatar">
                       {post.avatar ? (
                         <img src={post.avatar} alt={post.authorName} />
