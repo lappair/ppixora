@@ -38,7 +38,10 @@ export default function Feed({ posts, setPosts, user, navigate }) {
 
       if (error) {
         console.error("Gagal fetch posts:", error);
-      } else {
+        setLoading(false);
+        return;
+      }
+
       setPosts(
         data.map((p) => ({
           id: p.id,
@@ -46,64 +49,52 @@ export default function Feed({ posts, setPosts, user, navigate }) {
           caption: p.caption,
           authorName: p.author_name,
           avatar: p.avatar_url,
-          userId: p.user_id, // ← tambah ini
-          createdAt: new Date(p.created_at).getTime() + (7 * 60 * 60 * 1000),
+          userId: p.user_id,
+          createdAt: new Date(p.created_at).getTime(), // ← hapus +7 jam
         }))
       );
 
-        const postIds = data.map((p) => p.id);
-        if (postIds.length > 0) {
-          const { data: likesData } = await supabase
-            .from("likes")
-            .select("*")
-            .in("photo_id", postIds);
+      const postIds = data.map((p) => p.id);
 
-          if (likesData) {
-            const likesMap = {};
-            postIds.forEach((id) => {
-              const postLikes = likesData.filter((l) => l.photo_id === id);
-              likesMap[id] = {
-                count: postLikes.length,
-                liked: postLikes.some((l) => l.user_id === user.id),
-              };
-            });
-            setLikes(likesMap);
-          }
+      if (postIds.length > 0) {
+        const [{ data: likesData }, { data: commentsData }] = await Promise.all([
+          supabase.from("likes").select("*").in("photo_id", postIds),
+          supabase.from("comments").select("*").in("photo_id", postIds).order("created_at", { ascending: true }),
+        ]);
 
-          const { data: commentsData } = await supabase
-            .from("comments")
-            .select("*")
-            .in("photo_id", postIds)
-            .order("created_at", { ascending: true });
+        // Mapping likes — forEach, tidak ada .filter()
+        if (likesData) {
+          const likesMap = {};
+          likesData.forEach((l) => {
+            if (!likesMap[l.photo_id]) likesMap[l.photo_id] = { count: 0, liked: false };
+            likesMap[l.photo_id].count++;
+            if (l.user_id === user.id) likesMap[l.photo_id].liked = true;
+          });
+          setLikes(likesMap);
+        }
 
-          if (commentsData) {
-            const commMap = {};
-            postIds.forEach(id => {
-              commMap[id] = commentsData.filter(c => c.photo_id === id);
-            });
-            setComments(commMap);
-          }
+        // Mapping comments — forEach, tidak ada .filter()
+        if (commentsData) {
+          const commMap = {};
+          commentsData.forEach((c) => {
+            if (!commMap[c.photo_id]) commMap[c.photo_id] = [];
+            commMap[c.photo_id].push(c);
+          });
+          setComments(commMap);
         }
       }
+
       setLoading(false);
     };
 
     fetchPosts();
   }, [setPosts, user.id]);
 
+  // Hanya untuk update timer display, tidak hapus posts
   useEffect(() => {
-    const id = setInterval(() => {
-      setNow(Date.now());
-      setPosts((prev) =>
-        prev.filter((p) => Date.now() - p.createdAt < 24 * 60 * 60 * 1000)
-      );
-    }, 60_000);
+    const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
-  }, [setPosts]);
-
-  const livePosts = posts.filter(
-    (p) => now - p.createdAt < 24 * 60 * 60 * 1000
-  );
+  }, []);
 
   const handleDelete = async (id, imageUrl) => {
     const { error } = await supabase.from("posts").delete().eq("id", id);
@@ -132,7 +123,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
       await supabase.from("likes").insert({
         photo_id: postId,
         user_name: user.name,
-        user_id: user.id, // ← tambah ini
+        user_id: user.id,
       });
       setLikes((prev) => ({
         ...prev,
@@ -150,15 +141,15 @@ export default function Feed({ posts, setPosts, user, navigate }) {
         photo_id: postId,
         user_name: user.name,
         comment_text: newComment,
-        user_id: user.id, // ← tambah ini
+        user_id: user.id,
       })
       .select()
       .single();
 
     if (!error && data) {
-      setComments(prev => ({
+      setComments((prev) => ({
         ...prev,
-        [postId]: [...(prev[postId] || []), data]
+        [postId]: [...(prev[postId] || []), data],
       }));
       setNewComment("");
     } else {
@@ -177,7 +168,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
           <span className="empty-icon">◈</span>
           <p>Loading flashes…</p>
         </div>
-      ) : livePosts.length === 0 ? (
+      ) : posts.length === 0 ? (
         <div className="feed-empty">
           <span className="empty-icon">◈</span>
           <p>Nothing here yet.</p>
@@ -187,7 +178,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
         </div>
       ) : (
         <div className="post-grid">
-          {[...livePosts].map((post) => {
+          {[...posts].map((post) => {
             const pct = expiryPercent(post.createdAt);
             const urgent = pct > 85;
             const isOwner = post.authorName === user.name;
@@ -244,13 +235,14 @@ export default function Feed({ posts, setPosts, user, navigate }) {
                       <span className="timer-label">{timeLeft(post.createdAt)}</span>
                     </div>
                   </div>
-                </div> {/* tutup post-meta */}
+                </div>
 
                 {post.caption && (
                   <div className="post-caption">
                     <p>{post.caption}</p>
                   </div>
                 )}
+
                 {activeCommentId === post.id && (
                   <div className="comment-section">
                     <div className="comment-list">
@@ -293,7 +285,6 @@ export default function Feed({ posts, setPosts, user, navigate }) {
 
   return (
     <div className="feed-wrapper">
-      {/* Background full width */}
       <div className="bg-blob blob-1" />
       <div className="bg-blob blob-2" />
       <div className="bg-dots dots-1" />

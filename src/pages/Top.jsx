@@ -5,71 +5,35 @@ import "./Top.css";
 export default function Top({ navigate }) {
   const [topHashtags, setTopHashtags] = useState([]);
   const [topFlashes, setTopFlashes] = useState([]);
+  const [topFollowed, setTopFollowed] = useState([]);
+  const [topCommenters, setTopCommenters] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTrending = async () => {
       setLoading(true);
 
-      // Fetch posts 24 jam terakhir
-      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: posts, error } = await supabase
-        .from("posts")
-        .select("*")
-        .gte("created_at", cutoff);
+      const [
+        { data: flashes, error: e1 },
+        { data: hashtags, error: e2 },
+        { data: followed, error: e3 },
+        { data: commenters, error: e4 },
+      ] = await Promise.all([
+        supabase.from("top_flashes").select("*"),
+        supabase.from("top_hashtags").select("*"),
+        supabase.from("top_followed").select("*"),
+        supabase.from("top_commenters").select("*"),
+      ]);
 
-      if (error) { console.error("Gagal fetch posts:", error); setLoading(false); return; }
-      if (!posts || posts.length === 0) { setLoading(false); return; }
+      if (e1) console.error("top_flashes:", e1);
+      if (e2) console.error("top_hashtags:", e2);
+      if (e3) console.error("top_followed:", e3);
+      if (e4) console.error("top_commenters:", e4);
 
-      const postIds = posts.map((p) => p.id);
-
-      // Fetch semua likes
-      const { data: likesData } = await supabase
-        .from("likes")
-        .select("photo_id")
-        .in("photo_id", postIds);
-
-      // Hitung like per post
-      const likeCounts = {};
-      if (likesData) {
-        likesData.forEach((l) => {
-          likeCounts[l.photo_id] = (likeCounts[l.photo_id] || 0) + 1;
-        });
-      }
-
-      // Sort posts by likes → top 6
-      const sorted = posts
-        .map((p) => ({
-          id: p.id,
-          image: p.image_url,
-          caption: p.caption,
-          authorName: p.author_name,
-          avatar: p.avatar_url,
-          likeCount: likeCounts[p.id] || 0,
-        }))
-        .sort((a, b) => b.likeCount - a.likeCount)
-        .slice(0, 6);
-
-      setTopFlashes(sorted);
-
-      // Hitung hashtag dari caption semua posts
-      const hashtagCounts = {};
-      posts.forEach((post) => {
-        if (post.caption) {
-          const tags = post.caption.match(/#[\w]+/g) || [];
-          tags.forEach((tag) => {
-            const lowerTag = tag.toLowerCase();
-            hashtagCounts[lowerTag] = (hashtagCounts[lowerTag] || 0) + 1;
-          });
-        }
-      });
-
-      const sortedTags = Object.entries(hashtagCounts)
-        .map(([tag, count]) => ({ tag, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
-
-      setTopHashtags(sortedTags);
+      setTopFlashes(flashes || []);
+      setTopHashtags(hashtags || []);
+      setTopFollowed(followed || []);
+      setTopCommenters(commenters || []);
       setLoading(false);
     };
 
@@ -92,6 +56,7 @@ export default function Top({ navigate }) {
       </header>
 
       <div className="top-content">
+
         {/* Top Hashtags */}
         <section className="top-section">
           <h2 className="section-title">Top Hashtags</h2>
@@ -100,7 +65,11 @@ export default function Top({ navigate }) {
           ) : (
             <div className="hashtag-list">
               {topHashtags.map((h, i) => (
-                <div key={i} className="hashtag-card" onClick={() => navigate(`#/hashtag/${h.tag.replace("#", "")}`)}>
+                <div
+                  key={i}
+                  className="hashtag-card"
+                  onClick={() => navigate(`#/hashtag/${h.tag.replace("#", "")}`)}
+                >
                   <span className="hashtag-rank">{i + 1}</span>
                   <div className="hashtag-info">
                     <h3>{h.tag}</h3>
@@ -119,22 +88,86 @@ export default function Top({ navigate }) {
             <div className="top-empty">No flashes available yet.</div>
           ) : (
             <div className="top-grid">
-              {topFlashes.map((post) => (
+              {topFlashes.map((post, i) => (
                 <div
                   key={post.id}
                   className="top-flash-card"
-                  onClick={() => navigate("#/feed")}
+                  onClick={() => navigate(`#/user/${post.user_id}`)}
                 >
-                  <img src={post.image} alt={post.caption || "Flash"} />
+                  <span className="top-flash-rank">{i + 1}</span>
+                  <img src={post.image_url} alt={post.caption || "Flash"} />
                   <div className="top-flash-overlay">
-                    <span className="top-flash-author">{post.authorName}</span>
-                    <span className="top-flash-likes">♥ {post.likeCount}</span>
+                    <span className="top-flash-author">{post.author_name}</span>
+                    <span className="top-flash-likes">♥ {post.like_count} · 💬 {post.comment_count}</span>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </section>
+
+        {/* Most Followed */}
+        <section className="top-section">
+          <h2 className="section-title">Most Followed</h2>
+          {topFollowed.length === 0 ? (
+            <div className="top-empty">No follow data yet.</div>
+          ) : (
+            <div className="top-users-list">
+              {topFollowed.map((u, i) => (
+                <div
+                  key={u.id}
+                  className="top-user-card"
+                  onClick={() => navigate(`#/user/${u.id}`)}
+                >
+                  <span className="top-user-rank">{i + 1}</span>
+                  <div className="top-user-avatar">
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt={u.username} />
+                    ) : (
+                      <span>{u.username?.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="top-user-info">
+                    <p className="top-user-name">{u.username}</p>
+                    <p className="top-user-stat">{u.follow_count} followers</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Most Active */}
+        <section className="top-section">
+          <h2 className="section-title">Most Active</h2>
+          {topCommenters.length === 0 ? (
+            <div className="top-empty">No comment data yet.</div>
+          ) : (
+            <div className="top-users-list">
+              {topCommenters.map((u, i) => (
+                <div
+                  key={u.id}
+                  className="top-user-card"
+                  onClick={() => navigate(`#/user/${u.id}`)}
+                >
+                  <span className="top-user-rank">{i + 1}</span>
+                  <div className="top-user-avatar">
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt={u.username} />
+                    ) : (
+                      <span>{u.username?.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="top-user-info">
+                    <p className="top-user-name">{u.username}</p>
+                    <p className="top-user-stat">{u.comment_count} comments today</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
       </div>
     </div>
   );

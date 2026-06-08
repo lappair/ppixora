@@ -6,6 +6,7 @@ import Upload from "./pages/Upload";
 import Profile from "./pages/Profile";
 import Top from "./pages/Top";
 import Hashtag from "./pages/Hashtag";
+import UserProfile from "./pages/UserProfile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import "./App.css";
@@ -24,32 +25,31 @@ export default function App() {
   const [posts, setPosts] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
 
-const fetchProfile = async (userId) => {
-  try {
-    const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("timeout")), 5000)
-    );
-    const query = supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    
-    const { data, error } = await Promise.race([query, timeout]);
-    console.log("profile data:", data, "error:", error);
-    if (data) setProfile(data);
-  } catch (e) {
-    console.error("fetchProfile error:", e);
-  } finally {
-    setAuthLoading(false);
-  }
-};
+  const fetchProfile = async (userId) => {
+    try {
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 5000)
+      );
+      const query = supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const { data, error } = await Promise.race([query, timeout]);
+      console.log("profile data:", data, "error:", error);
+      if (data) setProfile(data);
+    } catch (e) {
+      console.error("fetchProfile error:", e);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   useEffect(() => {
     const getSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("session:", session);
         if (session) {
           setUser(session.user);
           await fetchProfile(session.user.id);
@@ -65,7 +65,6 @@ const fetchProfile = async (userId) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        console.log("auth change:", _event, session);
         if (session) {
           setUser(session.user);
           await fetchProfile(session.user.id);
@@ -98,7 +97,6 @@ const fetchProfile = async (userId) => {
     navigate("#/feed");
   };
 
-  // Loading auth
   if (authLoading) {
     return (
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh" }}>
@@ -107,22 +105,31 @@ const fetchProfile = async (userId) => {
     );
   }
 
-  // Belum login
   if (!user) {
-    if (hash === "#/register") {
-      return <Register navigate={navigate} />;
-    }
+    if (hash === "#/register") return <Register navigate={navigate} />;
     return <Login navigate={navigate} />;
   }
 
-  // Sudah login
   const appUser = {
-  id: user.id,
-  name: profile?.username || user.email,
-  avatar: profile?.avatar_url || null,
-};
+    id: user.id,
+    name: profile?.username || user.email,
+    avatar: profile?.avatar_url || null,
+  };
 
-  // Dynamic route
+  // Dynamic route: #/user/:id
+  if (hash.startsWith("#/user/")) {
+    const userId = hash.replace("#/user/", "");
+    return (
+      <div className="app-shell">
+        <Navbar currentHash={hash} navigate={navigate} user={appUser} onLogout={handleLogout} />
+        <main className="app-main">
+          <UserProfile userId={userId} user={appUser} navigate={navigate} />
+        </main>
+      </div>
+    );
+  }
+
+  // Dynamic route: #/hashtag/:tag
   if (hash.startsWith("#/hashtag/")) {
     const tag = hash.replace("#/hashtag/", "");
     return (
