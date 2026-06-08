@@ -1,200 +1,58 @@
 # Pixora
 
-Pixora adalah aplikasi web berbagi foto berbasis React yang memungkinkan pengguna mengunggah momen singkat dalam bentuk "flash". Setiap flash hanya ditampilkan selama 24 jam, sehingga aplikasi terasa seperti media sosial yang fokus pada momen harian, cepat, ringan, dan sementara.
+Pixora adalah platform media sosial berbasis photo sharing yang memungkinkan pengguna mengunggah foto, menulis caption, menggunakan hashtag, memberi like, menulis komentar, dan melihat konten yang sedang populer. Dalam implementasi kode React yang ada, foto disebut sebagai "flash" karena kontennya dibuat aktif dalam rentang 24 jam.
 
-Project ini dibuat dengan Vite + React untuk sisi frontend dan Supabase untuk backend, autentikasi, database, serta penyimpanan gambar. Secara konsep, Pixora menggabungkan fitur feed foto, upload gambar, like, komentar, hashtag, trending post, dan manajemen profil pengguna.
+Project ini dikembangkan menggunakan Vite + React pada sisi frontend dan Supabase sebagai layanan backend untuk autentikasi, database, serta penyimpanan gambar. Dari sisi studi kasus basis data, Pixora dimodelkan sebagai sistem media sosial relasional yang harus mampu mengelola pengguna, foto, follow, hashtag, like, komentar, dan story.
 
-## Ringkasan Project
+## Studi Kasus
 
-Pixora dirancang sebagai platform sosial sederhana tempat pengguna dapat:
+Berdasarkan studi kasus "Platform Media Sosial Pixora" pada variasi photo sharing, Pixora dibuat sebagai aplikasi berbagi foto tempat pengguna dapat mengekspresikan kreativitas melalui gambar. Setiap pengguna dapat mengunggah foto dengan caption, memakai hashtag agar kontennya mudah ditemukan, saling mengikuti, memberi like, menulis komentar, serta melihat story yang otomatis hilang setelah 24 jam.
 
-- Membuat akun dan login.
-- Mengunggah gambar sebagai flash.
-- Menambahkan caption pada gambar.
-- Melihat flash pengguna lain pada feed utama.
-- Memberikan like pada flash.
-- Memberikan komentar pada flash.
-- Melihat sisa waktu flash sebelum hilang dari feed.
-- Menghapus flash milik sendiri.
-- Mengubah nama tampilan dan avatar profil.
-- Melihat hashtag populer dan flash terpopuler dalam 24 jam terakhir.
+Ekosistem Pixora berpusat pada interaksi antarpengguna. Feed menampilkan konten dari pengguna lain, hashtag membantu proses pencarian dan discovery, sedangkan like dan komentar menjadi indikator engagement. Dalam rancangan basis data, sistem perlu menyimpan hubungan antarentitas secara jelas agar data dapat dianalisis dengan query relasional.
 
-Konsep utama dari aplikasi ini adalah ephemeral content, yaitu konten yang memiliki masa aktif terbatas. Pada Pixora, konten hanya dianggap aktif selama 24 jam sejak waktu upload.
+Penekanan utama studi kasus:
+
+- Pengguna dapat membuat akun dan memiliki profil.
+- Pengguna dapat mengunggah foto dengan caption.
+- Foto dapat memiliki banyak hashtag.
+- Satu hashtag dapat digunakan oleh banyak foto.
+- Pengguna dapat mengikuti pengguna lain.
+- Pengguna dapat memberi like pada foto.
+- Pengguna dapat mengomentari foto.
+- Story atau flash memiliki batas waktu 24 jam.
+- Sistem dapat menghitung popularitas pengguna, hashtag, foto, dan aktivitas komentar.
+
+Sistem basis data harus mampu menjawab pertanyaan seperti: siapa yang paling banyak diikuti, hashtag mana yang paling tren, foto mana yang mendapat engagement tertinggi, hingga pengguna aktif yang sering berkomentar. Semua ini dikelola dalam delapan tabel relasional.
 
 ## Tujuan Project
 
-Tujuan pengembangan Pixora adalah membuat aplikasi web interaktif yang dapat menunjukkan penerapan:
+Tujuan project Pixora adalah membangun aplikasi media sosial sederhana yang memperlihatkan hubungan antara frontend interaktif dan rancangan basis data relasional.
 
-- Single Page Application menggunakan React.
-- Routing sederhana berbasis URL hash.
+Secara teknis, project ini menunjukkan:
+
+- Pembuatan Single Page Application menggunakan React.
 - Autentikasi pengguna menggunakan Supabase Auth.
-- Operasi CRUD pada database Supabase.
-- Upload dan penyajian gambar melalui Supabase Storage.
-- State management menggunakan React Hooks.
-- Pengolahan data frontend untuk fitur like, komentar, hashtag, dan trending.
-- Desain antarmuka modern yang responsif dan mudah digunakan.
+- Upload gambar ke Supabase Storage.
+- Operasi insert, select, update, dan delete pada database.
+- Pengelolaan state menggunakan React Hooks.
+- Perhitungan data engagement seperti like, komentar, top flash, dan hashtag.
+- Pemodelan studi kasus media sosial ke dalam tabel relasional.
 
 ## Teknologi yang Digunakan
 
 | Teknologi | Fungsi |
 | --- | --- |
-| React | Library utama untuk membangun antarmuka pengguna |
-| Vite | Build tool dan development server |
-| Supabase Auth | Sistem login dan registrasi pengguna |
+| React | Membangun antarmuka pengguna berbasis komponen |
+| Vite | Development server dan build tool |
+| Supabase Auth | Registrasi, login, session, dan logout |
 | Supabase Database | Penyimpanan data profil, post, like, dan komentar |
 | Supabase Storage | Penyimpanan gambar flash dan avatar |
-| CSS Modules per halaman | Styling halaman dan komponen |
-| ESLint | Pemeriksaan kualitas kode JavaScript/React |
+| CSS | Styling per halaman dan komponen |
+| ESLint | Pemeriksaan kualitas kode |
 
-## Fitur Utama
+## Sistematika Kode
 
-### 1. Autentikasi Pengguna
-
-Pixora memiliki fitur registrasi dan login berbasis email dan password. Proses autentikasi menggunakan Supabase Auth.
-
-File terkait:
-
-- `src/pages/Login.jsx`
-- `src/pages/Register.jsx`
-- `src/App.jsx`
-- `src/supabaseClient.js`
-
-Alur autentikasi:
-
-1. Pengguna melakukan registrasi dengan email, username, dan password.
-2. Data akun dibuat melalui Supabase Auth.
-3. Username disimpan ke tabel `profiles`.
-4. Setelah login, aplikasi mengambil session aktif melalui `supabase.auth.getSession()`.
-5. Jika session valid, pengguna dapat mengakses halaman utama aplikasi.
-6. Jika belum login, pengguna diarahkan ke halaman login.
-
-### 2. Feed Flash
-
-Feed adalah halaman utama yang menampilkan flash dari seluruh pengguna. Data post diambil dari tabel `posts` dan hanya post dalam 24 jam terakhir yang ditampilkan.
-
-File terkait:
-
-- `src/pages/Feed.jsx`
-- `src/pages/Feed.css`
-
-Fungsi utama feed:
-
-- Mengambil post dari Supabase.
-- Memfilter post yang masih aktif dalam 24 jam.
-- Menampilkan gambar, caption, avatar, dan nama pengguna.
-- Menampilkan timer sisa waktu.
-- Menampilkan jumlah like dan komentar.
-- Mengizinkan pemilik post menghapus post miliknya.
-
-### 3. Upload Flash
-
-Halaman upload memungkinkan pengguna mengunggah gambar baru dan menambahkan caption opsional.
-
-File terkait:
-
-- `src/pages/Upload.jsx`
-- `src/pages/Upload.css`
-
-Alur upload:
-
-1. Pengguna memilih atau drag-and-drop file gambar.
-2. Aplikasi membuat preview gambar.
-3. Pengguna dapat menambahkan caption maksimal 200 karakter.
-4. Gambar diupload ke Supabase Storage bucket `flashes`.
-5. Public URL gambar disimpan ke tabel `posts`.
-6. Setelah berhasil, pengguna diarahkan kembali ke feed.
-
-Format gambar yang didukung oleh UI:
-
-- JPG
-- PNG
-- WEBP
-- GIF
-
-### 4. Like Flash
-
-Setiap pengguna dapat memberikan like pada flash. Status like disimpan pada tabel `likes`.
-
-File terkait:
-
-- `src/pages/Feed.jsx`
-
-Cara kerja:
-
-- Saat feed dimuat, aplikasi mengambil seluruh like untuk post yang sedang tampil.
-- Jika pengguna belum like, klik tombol like akan menambah data ke tabel `likes`.
-- Jika pengguna sudah like, klik ulang akan menghapus data like tersebut.
-- Jumlah like diperbarui pada state lokal agar UI terasa responsif.
-
-### 5. Komentar
-
-Pengguna dapat menambahkan komentar pada setiap flash. Komentar disimpan pada tabel `comments`.
-
-File terkait:
-
-- `src/pages/Feed.jsx`
-
-Fitur komentar:
-
-- Membuka dan menutup panel komentar per post.
-- Menampilkan daftar komentar.
-- Menambahkan komentar baru.
-- Mengirim komentar dengan tombol atau tombol Enter.
-- Menyimpan nama pengguna dan ID pengguna pada data komentar.
-
-### 6. Profil Pengguna
-
-Halaman profil digunakan untuk mengubah display name dan avatar.
-
-File terkait:
-
-- `src/pages/Profile.jsx`
-- `src/pages/Profile.css`
-
-Fitur profil:
-
-- Menampilkan nama dan avatar pengguna.
-- Mengubah display name.
-- Mengupload avatar baru ke Supabase Storage bucket `avatars`.
-- Menghapus avatar dari tampilan profil.
-- Menampilkan daftar flash milik pengguna.
-- Memperbarui nama pengguna pada post dan komentar milik pengguna.
-
-### 7. Trending dan Top Flash
-
-Halaman Trending menampilkan hashtag populer dan flash dengan jumlah like tertinggi dalam 24 jam terakhir.
-
-File terkait:
-
-- `src/pages/Top.jsx`
-- `src/pages/Top.css`
-
-Fitur halaman Trending:
-
-- Mengambil post 24 jam terakhir.
-- Menghitung jumlah like per post.
-- Mengurutkan post berdasarkan jumlah like.
-- Menampilkan 6 flash teratas.
-- Mengekstrak hashtag dari caption.
-- Menampilkan 5 hashtag terpopuler.
-
-### 8. Halaman Hashtag
-
-Halaman hashtag menampilkan semua flash yang mengandung hashtag tertentu.
-
-File terkait:
-
-- `src/pages/Hashtag.jsx`
-- `src/pages/hashtag.css`
-
-Alur:
-
-1. Pengguna memilih hashtag dari halaman Trending.
-2. Aplikasi membuka route `#/hashtag/:tag`.
-3. Aplikasi mencari post dengan caption yang mengandung hashtag tersebut.
-4. Hanya post dalam 24 jam terakhir yang ditampilkan.
-
-## Struktur Folder
+Kode Pixora disusun berdasarkan pemisahan tanggung jawab. File utama mengatur autentikasi, routing, dan state global, sedangkan folder `pages` berisi fitur utama aplikasi.
 
 ```text
 ppixora/
@@ -235,117 +93,544 @@ ppixora/
 `-- eslint.config.js
 ```
 
-## Arsitektur Aplikasi
+### `src/main.jsx`
 
-Pixora menggunakan arsitektur frontend SPA. Seluruh halaman dikelola oleh React, sedangkan perpindahan halaman menggunakan hash route dari browser.
+File ini menjadi entry point React. Komponen `App` dirender ke elemen root pada `index.html`.
 
-Route yang tersedia:
+### `src/App.jsx`
 
-| Route | Halaman | Fungsi |
+`App.jsx` adalah pusat kendali aplikasi. File ini menangani:
+
+- Pemeriksaan session login melalui `supabase.auth.getSession()`.
+- Listener perubahan autentikasi melalui `supabase.auth.onAuthStateChange()`.
+- Pengambilan profil pengguna dari tabel `profiles`.
+- Penyimpanan state `user`, `profile`, `posts`, dan `hash`.
+- Routing sederhana berbasis URL hash.
+- Logout pengguna.
+- Pengiriman props ke halaman seperti `Feed`, `Upload`, `Profile`, `Top`, dan `Hashtag`.
+
+Route yang dikelola:
+
+| Route | Komponen | Fungsi |
 | --- | --- | --- |
-| `#/feed` | Feed | Menampilkan flash aktif |
-| `#/upload` | Upload | Mengunggah flash baru |
-| `#/profile` | Profile | Mengelola profil pengguna |
-| `#/top` | Top | Melihat hashtag dan flash populer |
-| `#/hashtag/:tag` | Hashtag | Melihat flash berdasarkan hashtag |
-| `#/register` | Register | Registrasi akun baru |
+| `#/feed` | `Feed.jsx` | Menampilkan flash aktif |
+| `#/upload` | `Upload.jsx` | Mengunggah flash baru |
+| `#/profile` | `Profile.jsx` | Mengelola profil pengguna |
+| `#/top` | `Top.jsx` | Menampilkan trending hashtag dan top flash |
+| `#/hashtag/:tag` | `Hashtag.jsx` | Menampilkan flash berdasarkan hashtag |
+| `#/register` | `Register.jsx` | Registrasi akun |
 
-Komponen utama aplikasi berada di `src/App.jsx`. File ini bertanggung jawab untuk:
+### `src/supabaseClient.js`
 
-- Mengecek session login.
-- Mengambil profil pengguna dari Supabase.
-- Menyimpan state user, profile, post, dan route aktif.
-- Menentukan halaman yang ditampilkan.
-- Menangani logout.
-- Mengirim props penting ke setiap halaman.
+File ini membuat koneksi ke Supabase menggunakan Supabase URL dan anon key. Semua operasi auth, database, dan storage memakai client dari file ini.
 
-## Desain Database Supabase
+### `src/components/Navbar.jsx`
 
-Project ini menggunakan beberapa tabel utama.
+Navbar berfungsi sebagai navigasi utama setelah pengguna login. Komponen ini menyediakan akses ke Feed, Top, Upload, Profile, dan Logout.
 
-### Tabel `profiles`
+### Folder `src/pages`
 
-Tabel ini menyimpan data profil pengguna.
+Folder ini berisi halaman utama aplikasi:
 
-| Kolom | Tipe Data | Keterangan |
+| File | Peran |
+| --- | --- |
+| `Login.jsx` | Login pengguna dengan email dan password |
+| `Register.jsx` | Registrasi pengguna dan penyimpanan username |
+| `Feed.jsx` | Menampilkan post 24 jam terakhir, like, komentar, timer, dan hapus post |
+| `Upload.jsx` | Upload gambar ke bucket `flashes` dan insert data ke tabel `posts` |
+| `Profile.jsx` | Edit display name, avatar, dan melihat flash milik user |
+| `Top.jsx` | Menghitung top hashtag dan top flash |
+| `Hashtag.jsx` | Menampilkan post berdasarkan hashtag tertentu |
+
+## Alur Kerja Aplikasi
+
+```text
+Pengguna membuka Pixora
+        |
+        v
+App.jsx mengecek session Supabase
+        |
+        +-- Belum login --> Login / Register
+        |
+        +-- Sudah login --> Ambil profile dari tabel profiles
+                              |
+                              v
+                        Tampilkan aplikasi utama
+                              |
+                              v
+        Feed / Upload / Profile / Top / Hashtag
+```
+
+## Alur Fitur Berdasarkan Kode
+
+### 1. Registrasi
+
+File utama: `src/pages/Register.jsx`
+
+Alur:
+
+1. Pengguna memasukkan email, username, dan password.
+2. Aplikasi memanggil `supabase.auth.signUp()`.
+3. Jika akun berhasil dibuat, ID user dari Supabase Auth disimpan ke tabel `profiles`.
+4. Username disimpan agar dapat ditampilkan sebagai identitas pengguna.
+
+### 2. Login
+
+File utama: `src/pages/Login.jsx`
+
+Alur:
+
+1. Pengguna memasukkan email dan password.
+2. Aplikasi memanggil `supabase.auth.signInWithPassword()`.
+3. Jika berhasil, session aktif terbaca oleh `App.jsx`.
+4. Pengguna masuk ke halaman feed.
+
+### 3. Feed Flash
+
+File utama: `src/pages/Feed.jsx`
+
+Alur:
+
+1. Aplikasi mengambil data dari tabel `posts`.
+2. Data difilter menggunakan batas waktu 24 jam terakhir.
+3. Untuk setiap post, aplikasi mengambil data like dari tabel `likes`.
+4. Aplikasi juga mengambil komentar dari tabel `comments`.
+5. UI menampilkan gambar, caption, author, avatar, timer, like, dan komentar.
+
+Pada kode, konsep story 24 jam diterapkan dengan filter:
+
+```text
+created_at >= waktu sekarang - 24 jam
+```
+
+Kemudian state lokal juga diperbarui berkala agar post yang sudah lewat 24 jam tidak lagi tampil.
+
+### 4. Upload Flash
+
+File utama: `src/pages/Upload.jsx`
+
+Alur:
+
+1. Pengguna memilih file gambar.
+2. Aplikasi membuat preview.
+3. Gambar diupload ke Supabase Storage bucket `flashes`.
+4. Public URL gambar diambil.
+5. Data post disimpan ke tabel `posts`.
+6. Pengguna diarahkan kembali ke feed.
+
+Data yang disimpan:
+
+- URL gambar.
+- Caption.
+- Nama author.
+- Avatar author.
+- ID user pembuat post.
+- Waktu upload.
+
+### 5. Like
+
+File utama: `src/pages/Feed.jsx`
+
+Alur:
+
+1. Jika user belum like, aplikasi insert data ke tabel `likes`.
+2. Jika user sudah like, aplikasi delete data dari tabel `likes`.
+3. Jumlah like pada UI diperbarui melalui state lokal.
+
+Relasi yang dipakai:
+
+```text
+user -> likes -> post
+```
+
+### 6. Komentar
+
+File utama: `src/pages/Feed.jsx`
+
+Alur:
+
+1. Pengguna membuka panel komentar.
+2. Pengguna menulis komentar.
+3. Aplikasi insert komentar ke tabel `comments`.
+4. Komentar baru ditambahkan ke state agar langsung muncul di UI.
+
+Relasi yang dipakai:
+
+```text
+user -> comments -> post
+```
+
+### 7. Profil
+
+File utama: `src/pages/Profile.jsx`
+
+Alur:
+
+1. Pengguna mengubah display name atau avatar.
+2. Avatar baru diupload ke bucket `avatars`.
+3. Tabel `profiles` diperbarui.
+4. Nama author pada `posts` dan `comments` milik user ikut diperbarui.
+5. Halaman profil menampilkan flash milik pengguna berdasarkan `user_id`.
+
+### 8. Trending
+
+File utama: `src/pages/Top.jsx`
+
+Alur:
+
+1. Aplikasi mengambil post 24 jam terakhir.
+2. Aplikasi mengambil semua like untuk post tersebut.
+3. Jumlah like dihitung per post.
+4. Post diurutkan berdasarkan jumlah like.
+5. Caption dipindai untuk menemukan hashtag.
+6. Hashtag dihitung berdasarkan frekuensi pemakaian.
+
+Pada implementasi kode saat ini, hashtag belum disimpan sebagai tabel fisik. Hashtag diekstrak langsung dari teks caption menggunakan pola `#tag`.
+
+### 9. Halaman Hashtag
+
+File utama: `src/pages/Hashtag.jsx`
+
+Alur:
+
+1. Pengguna memilih hashtag dari halaman Top.
+2. Aplikasi membuka route `#/hashtag/:tag`.
+3. Query Supabase mencari caption yang mengandung hashtag tersebut.
+4. Hanya post 24 jam terakhir yang ditampilkan.
+
+## Desain Basis Data Studi Kasus
+
+Untuk kebutuhan studi kasus basis data relasional, Pixora dapat dimodelkan ke dalam delapan tabel utama. Delapan tabel ini digunakan untuk menjawab kebutuhan analitik media sosial seperti pengguna paling populer, hashtag paling tren, foto dengan engagement tertinggi, dan pengguna paling aktif berkomentar.
+
+### 1. `users`
+
+Menyimpan identitas pengguna.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `user_id` | Primary key pengguna |
+| `email` | Email pengguna |
+| `username` | Nama tampilan |
+| `avatar_url` | Foto profil |
+| `is_private` | Status akun privat atau publik |
+| `created_at` | Waktu akun dibuat |
+
+Pada kode saat ini, tabel ini direpresentasikan oleh Supabase Auth dan tabel `profiles`.
+
+### 2. `photos`
+
+Menyimpan foto yang diunggah pengguna.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `photo_id` | Primary key foto |
+| `user_id` | Foreign key ke `users` |
+| `image_url` | URL gambar |
+| `caption` | Caption foto |
+| `location_name` | Lokasi foto, jika ada |
+| `created_at` | Waktu upload |
+
+Pada kode saat ini, tabel ini direpresentasikan oleh tabel `posts`.
+
+### 3. `follows`
+
+Menyimpan relasi pengikut antar pengguna.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `follow_id` | Primary key follow |
+| `follower_id` | User yang mengikuti |
+| `following_id` | User yang diikuti |
+| `status` | Status follow, misalnya pending atau accepted |
+| `created_at` | Waktu follow dibuat |
+
+Tabel ini penting untuk menjawab pertanyaan siapa pengguna yang paling banyak diikuti.
+
+### 4. `hashtags`
+
+Menyimpan daftar hashtag unik.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `hashtag_id` | Primary key hashtag |
+| `name` | Nama hashtag, contoh `travel` |
+| `created_at` | Waktu hashtag pertama dibuat |
+
+Tabel ini membuat hashtag lebih terstruktur dibanding hanya membaca teks caption.
+
+### 5. `photo_hashtags`
+
+Tabel penghubung many-to-many antara foto dan hashtag.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `photo_id` | Foreign key ke `photos` |
+| `hashtag_id` | Foreign key ke `hashtags` |
+
+Relasi ini diperlukan karena satu foto dapat memiliki banyak hashtag, dan satu hashtag dapat digunakan oleh banyak foto.
+
+### 6. `likes`
+
+Menyimpan interaksi like pada foto.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `like_id` | Primary key like |
+| `photo_id` | Foreign key ke `photos` |
+| `user_id` | Foreign key ke `users` |
+| `created_at` | Waktu like diberikan |
+
+Tabel ini dipakai untuk menghitung popularitas dan engagement foto.
+
+### 7. `comments`
+
+Menyimpan komentar pengguna pada foto.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `comment_id` | Primary key komentar |
+| `photo_id` | Foreign key ke `photos` |
+| `user_id` | Foreign key ke `users` |
+| `comment_text` | Isi komentar |
+| `created_at` | Waktu komentar dibuat |
+
+Tabel ini dipakai untuk menghitung aktivitas diskusi dan pengguna yang sering berkomentar.
+
+### 8. `stories`
+
+Menyimpan konten sementara yang hilang setelah 24 jam.
+
+| Kolom | Keterangan |
+| --- | --- |
+| `story_id` | Primary key story |
+| `user_id` | Foreign key ke `users` |
+| `image_url` | URL gambar story |
+| `caption` | Caption story |
+| `created_at` | Waktu story dibuat |
+| `expires_at` | Waktu story berakhir |
+
+Pada kode saat ini, konsep story diwakili oleh flash/post yang difilter hanya untuk 24 jam terakhir.
+
+## Relasi Antar Tabel
+
+```text
+users 1--n photos
+users 1--n stories
+users 1--n likes
+users 1--n comments
+users 1--n follows sebagai follower
+users 1--n follows sebagai following
+photos 1--n likes
+photos 1--n comments
+photos n--n hashtags melalui photo_hashtags
+```
+
+Secara konsep, `users` menjadi entitas pusat. Foto, story, like, komentar, dan follow semuanya terhubung ke pengguna. Hashtag dipisahkan ke tabel sendiri agar pencarian tren dapat dilakukan lebih efisien dan tidak bergantung pada parsing caption di frontend.
+
+## Pertanyaan Analitik yang Dijawab Database
+
+Bagian ini adalah inti dari studi kasus basis data. Dengan delapan tabel relasional, sistem dapat menjawab pertanyaan-pertanyaan penting berikut.
+
+### 1. Siapa pengguna yang paling banyak diikuti?
+
+Pertanyaan ini dijawab dengan tabel `follows`.
+
+```sql
+SELECT
+  u.user_id,
+  u.username,
+  COUNT(f.follower_id) AS jumlah_pengikut
+FROM users u
+JOIN follows f ON f.following_id = u.user_id
+WHERE f.status = 'accepted'
+GROUP BY u.user_id, u.username
+ORDER BY jumlah_pengikut DESC
+LIMIT 1;
+```
+
+Makna query:
+
+- `following_id` adalah user yang sedang diikuti.
+- Jumlah baris pada `follows` menunjukkan jumlah pengikut.
+- User dengan count terbesar adalah pengguna paling populer berdasarkan follower.
+
+### 2. Hashtag mana yang paling tren?
+
+Pertanyaan ini dijawab dengan tabel `hashtags`, `photo_hashtags`, dan `photos`.
+
+```sql
+SELECT
+  h.name,
+  COUNT(ph.photo_id) AS jumlah_pemakaian
+FROM hashtags h
+JOIN photo_hashtags ph ON ph.hashtag_id = h.hashtag_id
+JOIN photos p ON p.photo_id = ph.photo_id
+WHERE p.created_at >= NOW() - INTERVAL '24 hours'
+GROUP BY h.hashtag_id, h.name
+ORDER BY jumlah_pemakaian DESC
+LIMIT 5;
+```
+
+Makna query:
+
+- Hashtag dihitung berdasarkan jumlah foto yang memakainya.
+- Filter 24 jam membuat hasilnya relevan sebagai tren terbaru.
+- Query ini adalah versi basis data dari fitur Top Hashtags pada `Top.jsx`.
+
+### 3. Foto mana yang mendapat engagement tertinggi?
+
+Engagement dapat dihitung dari gabungan jumlah like dan komentar.
+
+```sql
+SELECT
+  p.photo_id,
+  p.caption,
+  u.username,
+  COUNT(DISTINCT l.like_id) AS jumlah_like,
+  COUNT(DISTINCT c.comment_id) AS jumlah_komentar,
+  COUNT(DISTINCT l.like_id) + COUNT(DISTINCT c.comment_id) AS total_engagement
+FROM photos p
+JOIN users u ON u.user_id = p.user_id
+LEFT JOIN likes l ON l.photo_id = p.photo_id
+LEFT JOIN comments c ON c.photo_id = p.photo_id
+GROUP BY p.photo_id, p.caption, u.username
+ORDER BY total_engagement DESC
+LIMIT 5;
+```
+
+Makna query:
+
+- Like dan komentar sama-sama dianggap bentuk interaksi.
+- Foto dengan total interaksi tertinggi dianggap memiliki engagement paling tinggi.
+- Query ini sesuai dengan fitur Top Flashes pada `Top.jsx`, tetapi versi database lebih lengkap karena memasukkan komentar.
+
+### 4. Siapa pengguna aktif yang sering berkomentar?
+
+Pertanyaan ini dijawab menggunakan tabel `comments` dan `users`.
+
+```sql
+SELECT
+  u.user_id,
+  u.username,
+  COUNT(c.comment_id) AS jumlah_komentar
+FROM users u
+JOIN comments c ON c.user_id = u.user_id
+GROUP BY u.user_id, u.username
+ORDER BY jumlah_komentar DESC
+LIMIT 5;
+```
+
+Makna query:
+
+- Aktivitas pengguna dapat diukur dari jumlah komentar.
+- Pengguna dengan komentar terbanyak dapat dianggap sebagai user paling aktif dalam diskusi.
+
+## Perbandingan Rancangan Studi Kasus dan Implementasi Kode
+
+| Kebutuhan Studi Kasus | Tabel Ideal | Implementasi Kode Saat Ini |
 | --- | --- | --- |
-| `id` | uuid | ID pengguna dari Supabase Auth |
-| `username` | text | Nama tampilan pengguna |
-| `avatar_url` | text | URL avatar pengguna |
+| Data pengguna | `users` | Supabase Auth + `profiles` |
+| Foto pengguna | `photos` | `posts` |
+| Follow pengguna | `follows` | Belum diimplementasikan di UI |
+| Hashtag terstruktur | `hashtags` | Diekstrak dari caption di `Top.jsx` |
+| Relasi foto-hashtag | `photo_hashtags` | Belum menjadi tabel fisik |
+| Like foto | `likes` | Sudah digunakan di `Feed.jsx` |
+| Komentar foto | `comments` | Sudah digunakan di `Feed.jsx` |
+| Story 24 jam | `stories` | Diwakili oleh post/flash aktif 24 jam |
 
-### Tabel `posts`
-
-Tabel ini menyimpan data flash yang diupload pengguna.
-
-| Kolom | Tipe Data | Keterangan |
-| --- | --- | --- |
-| `id` | uuid/int | ID post |
-| `image_url` | text | URL gambar dari Supabase Storage |
-| `caption` | text | Caption post |
-| `author_name` | text | Nama pembuat post |
-| `avatar_url` | text | Avatar pembuat post |
-| `user_id` | uuid | ID pembuat post |
-| `created_at` | timestamp | Waktu post dibuat |
-
-### Tabel `likes`
-
-Tabel ini menyimpan data like pada flash.
-
-| Kolom | Tipe Data | Keterangan |
-| --- | --- | --- |
-| `id` | uuid/int | ID like |
-| `photo_id` | uuid/int | ID post yang disukai |
-| `user_id` | uuid | ID pengguna yang melakukan like |
-| `user_name` | text | Nama pengguna yang melakukan like |
-
-### Tabel `comments`
-
-Tabel ini menyimpan komentar pada flash.
-
-| Kolom | Tipe Data | Keterangan |
-| --- | --- | --- |
-| `id` | uuid/int | ID komentar |
-| `photo_id` | uuid/int | ID post yang dikomentari |
-| `user_id` | uuid | ID pengguna yang berkomentar |
-| `user_name` | text | Nama pengguna yang berkomentar |
-| `comment_text` | text | Isi komentar |
-| `created_at` | timestamp | Waktu komentar dibuat |
+Dengan demikian, kode React yang ada sudah memperlihatkan fitur inti seperti autentikasi, upload, feed, like, komentar, profil, hashtag, dan trending. Untuk pemodelan basis data penuh sesuai studi kasus, struktur dapat diperluas menjadi delapan tabel relasional agar seluruh kebutuhan analitik dapat dijawab langsung melalui query SQL.
 
 ## Supabase Storage
 
-Project ini menggunakan dua bucket storage.
+Selain tabel relasional, Pixora memakai storage untuk menyimpan file gambar.
 
 | Bucket | Fungsi |
 | --- | --- |
-| `flashes` | Menyimpan gambar post/flash |
-| `avatars` | Menyimpan gambar avatar profil |
+| `flashes` | Menyimpan gambar post atau flash |
+| `avatars` | Menyimpan gambar avatar pengguna |
 
-Gambar yang sudah diupload diambil melalui public URL agar dapat langsung ditampilkan pada komponen React.
+Database hanya menyimpan URL gambar, sedangkan file gambar asli disimpan di Supabase Storage.
 
-## Alur Data Aplikasi
+## Alur Penjelasan untuk Presentasi
 
-```text
-Pengguna login/register
-        |
-        v
-Supabase Auth membuat atau membaca session
-        |
-        v
-App.jsx mengambil data profil dari tabel profiles
-        |
-        v
-Pengguna masuk ke halaman Feed
-        |
-        v
-Feed mengambil posts, likes, dan comments dari Supabase
-        |
-        v
-Pengguna dapat upload, like, komentar, buka trending, atau edit profil
-```
+Berikut alur yang disarankan saat memaparkan project ke dosen.
+
+### 1. Mulai dari Studi Kasus
+
+Jelaskan bahwa Pixora adalah platform photo sharing seperti media sosial sederhana. Pengguna dapat mengunggah foto, memakai hashtag, memberi like, berkomentar, dan melihat konten populer.
+
+Tekankan bahwa project ini bukan hanya tampilan aplikasi, tetapi juga studi kasus basis data yang harus mampu mengelola relasi antar pengguna, konten, dan interaksi.
+
+### 2. Jelaskan Kebutuhan Data
+
+Sampaikan bahwa sistem harus menyimpan:
+
+- Data pengguna.
+- Data foto.
+- Data follow.
+- Data hashtag.
+- Relasi foto dan hashtag.
+- Data like.
+- Data komentar.
+- Data story 24 jam.
+
+Delapan kebutuhan ini kemudian diterjemahkan menjadi delapan tabel relasional.
+
+### 3. Jelaskan Relasi Tabel
+
+Tekankan relasi utama:
+
+- Satu user dapat mengunggah banyak foto.
+- Satu user dapat mengikuti banyak user lain.
+- Satu foto dapat memiliki banyak like.
+- Satu foto dapat memiliki banyak komentar.
+- Satu foto dapat memiliki banyak hashtag.
+- Satu hashtag dapat dipakai banyak foto.
+- Satu user dapat membuat banyak story.
+
+### 4. Hubungkan Database dengan Pertanyaan Analitik
+
+Bagian ini penting untuk menunjukkan manfaat basis data relasional.
+
+Contoh pertanyaan:
+
+- Siapa user paling populer? Dijawab dari tabel `follows`.
+- Hashtag apa yang sedang tren? Dijawab dari `hashtags` dan `photo_hashtags`.
+- Foto mana yang engagement-nya tertinggi? Dijawab dari `photos`, `likes`, dan `comments`.
+- Siapa user paling aktif berkomentar? Dijawab dari `comments`.
+
+### 5. Jelaskan Sistematika Kode
+
+Setelah basis data dijelaskan, masuk ke kode:
+
+- `App.jsx` mengatur session, route, dan state utama.
+- `Login.jsx` dan `Register.jsx` mengatur autentikasi.
+- `Feed.jsx` menampilkan post, like, komentar, dan timer.
+- `Upload.jsx` mengatur upload gambar.
+- `Profile.jsx` mengatur data profil.
+- `Top.jsx` menghitung trending.
+- `Hashtag.jsx` menampilkan konten berdasarkan hashtag.
+- `Navbar.jsx` menyediakan navigasi.
+
+### 6. Tunjukkan Demo Aplikasi
+
+Urutan demo:
+
+1. Register akun.
+2. Login.
+3. Upload foto.
+4. Lihat foto muncul di feed.
+5. Tambahkan like.
+6. Tambahkan komentar.
+7. Buka halaman Top untuk melihat trending.
+8. Buka hashtag.
+9. Ubah profil dan avatar.
+
+### 7. Tutup dengan Kelebihan dan Pengembangan
+
+Sampaikan bahwa aplikasi sudah memiliki alur dasar media sosial. Untuk pengembangan berikutnya, rancangan delapan tabel dapat diimplementasikan penuh agar fitur follow, hashtag terstruktur, dan story dapat dikelola lebih kuat di level database.
 
 ## Instalasi dan Menjalankan Project
-
-Pastikan Node.js dan npm sudah terpasang.
 
 Clone repository:
 
@@ -392,141 +677,50 @@ Koneksi Supabase berada pada file:
 src/supabaseClient.js
 ```
 
-File tersebut membuat client Supabase menggunakan:
-
-- Supabase Project URL
-- Supabase anon public key
-
-Untuk pengembangan lanjutan, konfigurasi ini dapat dipindahkan ke environment variable agar lebih fleksibel, misalnya:
+Untuk pengembangan lanjutan, URL dan anon key Supabase sebaiknya dipindahkan ke environment variable:
 
 ```text
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
 ```
 
-Kemudian dipanggil melalui `import.meta.env` di aplikasi React.
-
-## Penjelasan Alur Demo untuk Presentasi
-
-Berikut urutan demo yang dapat digunakan saat memaparkan project ke dosen.
-
-### 1. Perkenalan Aplikasi
-
-Jelaskan bahwa Pixora adalah aplikasi berbagi foto sementara. Setiap post disebut flash dan hanya aktif selama 24 jam.
-
-Poin yang dapat disampaikan:
-
-- Aplikasi berbasis web.
-- Pengguna harus login terlebih dahulu.
-- Konten bersifat sementara.
-- Ada interaksi sosial seperti like dan komentar.
-- Ada fitur trending berdasarkan hashtag dan jumlah like.
-
-### 2. Demo Registrasi dan Login
-
-Tunjukkan halaman register dan login.
-
-Poin teknis:
-
-- Register menggunakan Supabase Auth.
-- Username disimpan pada tabel `profiles`.
-- Session login dicek di `App.jsx`.
-- Jika belum login, pengguna tidak dapat masuk ke feed.
-
-### 3. Demo Feed
-
-Tunjukkan halaman feed.
-
-Poin teknis:
-
-- Data diambil dari tabel `posts`.
-- Feed hanya menampilkan post dalam 24 jam terakhir.
-- Timer menunjukkan sisa waktu flash.
-- Post lama otomatis tidak tampil karena difilter berdasarkan `created_at`.
-
-### 4. Demo Upload Flash
-
-Tunjukkan proses upload gambar.
-
-Poin teknis:
-
-- File gambar dipilih dari komputer.
-- Aplikasi menampilkan preview.
-- File diupload ke Supabase Storage bucket `flashes`.
-- URL gambar disimpan ke tabel `posts`.
-- Setelah upload berhasil, pengguna diarahkan ke feed.
-
-### 5. Demo Like dan Komentar
-
-Tunjukkan tombol like dan panel komentar.
-
-Poin teknis:
-
-- Like disimpan pada tabel `likes`.
-- Komentar disimpan pada tabel `comments`.
-- State lokal diperbarui agar perubahan langsung terlihat.
-- Setiap like dan komentar terhubung dengan ID pengguna.
-
-### 6. Demo Trending
-
-Tunjukkan halaman Top.
-
-Poin teknis:
-
-- Aplikasi mengambil post dalam 24 jam terakhir.
-- Jumlah like dihitung per post.
-- Hashtag diekstrak dari caption menggunakan pencarian pola `#tag`.
-- Top hashtag dan top flash ditampilkan berdasarkan popularitas.
-
-### 7. Demo Profil
-
-Tunjukkan halaman profil.
-
-Poin teknis:
-
-- Pengguna dapat mengubah display name.
-- Avatar dapat diupload ke bucket `avatars`.
-- Nama pengguna pada post dan komentar ikut diperbarui.
-- Halaman profil juga menampilkan daftar flash milik pengguna.
+Kemudian digunakan melalui `import.meta.env` agar konfigurasi tidak ditulis langsung di source code.
 
 ## Kelebihan Project
 
-- Menggunakan backend-as-a-service sehingga pengembangan lebih cepat.
-- Sudah memiliki autentikasi pengguna.
-- Mendukung upload gambar secara langsung.
-- Memiliki konsep konten 24 jam yang jelas.
-- Memiliki fitur sosial dasar: feed, like, komentar, profil, dan trending.
-- Struktur kode mudah dipahami karena dipisahkan berdasarkan halaman dan komponen.
+- Sudah menggunakan autentikasi pengguna.
+- Sudah mendukung upload gambar.
+- Sudah memiliki feed berbasis waktu 24 jam.
+- Sudah memiliki interaksi sosial berupa like dan komentar.
+- Sudah memiliki halaman trending dan hashtag.
+- Struktur kode mudah dipahami karena dipisahkan berdasarkan halaman.
+- Cocok dijadikan contoh hubungan antara aplikasi frontend dan rancangan basis data relasional.
 
 ## Batasan Project
 
-Beberapa batasan yang masih dapat dikembangkan:
-
-- Routing masih menggunakan hash route sederhana, belum memakai React Router.
+- Routing masih menggunakan hash route sederhana.
+- Fitur follow belum tersedia pada UI.
+- Hashtag masih diekstrak dari caption, belum memakai tabel `hashtags` dan `photo_hashtags`.
+- Konsep story masih digabung dengan post/flash 24 jam.
 - Konfigurasi Supabase masih ditulis langsung di kode.
-- Penghapusan post menghapus data post dan file gambar, tetapi belum membersihkan like dan komentar terkait secara eksplisit.
-- Belum ada pagination atau infinite scroll pada feed.
-- Belum ada fitur follow pengguna.
+- Belum ada pagination pada feed.
 - Belum ada notifikasi real-time.
-- Belum ada validasi ukuran file gambar pada sisi frontend.
+- Belum ada validasi ukuran file gambar.
 
 ## Pengembangan Selanjutnya
 
-Fitur yang dapat ditambahkan pada versi berikutnya:
-
-- React Router untuk routing yang lebih rapi.
-- Environment variable untuk konfigurasi Supabase.
-- Realtime update menggunakan Supabase Realtime.
-- Sistem follow/follower.
-- Halaman detail post.
-- Moderasi komentar.
-- Pagination feed.
-- Optimasi gambar sebelum upload.
-- Dark mode.
-- Unit test dan integration test.
+- Mengimplementasikan tabel `follows`.
+- Mengimplementasikan tabel `hashtags` dan `photo_hashtags`.
+- Memisahkan `photos` dan `stories`.
+- Menambahkan query ranking untuk popular user, trending hashtag, top engagement, dan active commenter.
+- Menambahkan React Router.
+- Menambahkan Supabase Realtime.
+- Menambahkan pagination atau infinite scroll.
+- Memindahkan konfigurasi Supabase ke environment variable.
+- Menambahkan unit test dan integration test.
 
 ## Kesimpulan
 
-Pixora adalah aplikasi web sosial berbasis React dan Supabase yang menerapkan konsep berbagi foto sementara selama 24 jam. Project ini menunjukkan penerapan autentikasi, database, storage, state management, routing sederhana, dan interaksi pengguna dalam satu aplikasi yang utuh.
+Pixora adalah project media sosial photo sharing yang menggabungkan aplikasi React dengan rancangan basis data relasional. Dari sisi kode, aplikasi sudah menunjukkan alur utama seperti autentikasi, upload foto, feed, like, komentar, profil, hashtag, dan trending. Dari sisi studi kasus, Pixora dapat dimodelkan dalam delapan tabel relasional agar sistem mampu menjawab pertanyaan analitik seperti pengguna paling banyak diikuti, hashtag paling tren, foto dengan engagement tertinggi, dan pengguna paling aktif berkomentar.
 
-Dengan fitur feed, upload, like, komentar, profil, hashtag, dan trending, Pixora dapat digunakan sebagai contoh project frontend-backend modern yang cocok untuk dipresentasikan sebagai hasil pengembangan aplikasi web interaktif.
+Dengan demikian, Pixora tidak hanya menjadi aplikasi web interaktif, tetapi juga contoh studi kasus basis data yang memperlihatkan bagaimana relasi antar pengguna, konten, dan interaksi sosial dikelola secara sistematis.
