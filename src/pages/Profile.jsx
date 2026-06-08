@@ -10,14 +10,12 @@ export default function Profile({ user, setUser, posts, navigate }) {
   const [error, setError] = useState(null);
   const fileRef = useRef();
 
-  const myPosts = posts.filter((p) => p.authorName === user.name);
+  const myPosts = posts.filter((p) => p.userId === user.id);
 
   const handleAvatarFile = (e) => {
     const file = e.target.files[0];
     if (!file || !file.type.startsWith("image/")) return;
-    // Preview lokal dulu
     setAvatar(URL.createObjectURL(file));
-    // Simpan file di ref untuk diupload saat save
     fileRef._pendingFile = file;
   };
 
@@ -29,7 +27,7 @@ export default function Profile({ user, setUser, posts, navigate }) {
     let avatarUrl = avatar;
 
     try {
-      // Kalau ada foto baru yang dipilih, upload ke Supabase Storage
+      // Upload avatar kalau ada foto baru
       if (fileRef._pendingFile) {
         const file = fileRef._pendingFile;
         const fileName = `avatar-${Date.now()}-${file.name.replace(/\s/g, "_")}`;
@@ -48,7 +46,26 @@ export default function Profile({ user, setUser, posts, navigate }) {
         fileRef._pendingFile = null;
       }
 
-      setUser({ name: name.trim(), avatar: avatarUrl });
+      // Update tabel profiles
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ username: name.trim(), avatar_url: avatarUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      // Update author_name di semua post milik user ini
+      await supabase
+        .from("posts")
+        .update({ author_name: name.trim() })
+        .eq("user_id", user.id);
+        
+      await supabase
+        .from("comments")
+        .update({ user_name: name.trim() })
+        .eq("user_id", user.id);
+      // Update state lokal
+      setUser({ id: user.id, username: name.trim(), avatar_url: avatarUrl });
       setAvatar(avatarUrl);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -73,7 +90,6 @@ export default function Profile({ user, setUser, posts, navigate }) {
       </header>
 
       <div className="profile-card">
-        {/* Avatar section */}
         <div className="avatar-section">
           <div className="avatar-lg">
             {avatar ? (
@@ -112,7 +128,6 @@ export default function Profile({ user, setUser, posts, navigate }) {
           </div>
         </div>
 
-        {/* Name field */}
         <div className="field-group">
           <label className="field-label">Display name</label>
           <input
@@ -127,7 +142,6 @@ export default function Profile({ user, setUser, posts, navigate }) {
 
         {error && <p className="profile-error">{error}</p>}
 
-        {/* Save */}
         <div className="profile-save-row">
           <button
             className="btn-primary"
@@ -139,7 +153,6 @@ export default function Profile({ user, setUser, posts, navigate }) {
         </div>
       </div>
 
-      {/* My posts */}
       <section className="my-posts-section">
         <h2 className="my-posts-title">
           Your flashes

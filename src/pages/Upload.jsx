@@ -57,6 +57,7 @@ export default function Upload({ user, setPosts, navigate }) {
           caption: caption.trim(),
           author_name: user.name,
           avatar_url: user.avatar,
+          user_id: user.id, // ← tambah ini
         })
         .select()
         .single();

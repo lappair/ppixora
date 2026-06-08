@@ -1,7 +1,6 @@
 import "./Navbar.css";
 
-export default function Navbar({ currentHash, navigate, user }) {
-  // 👇 Tambahin TOP-nya di array ini 👇
+export default function Navbar({ currentHash, navigate, user, onLogout }) {
   const links = [
     { hash: "#/feed", label: "Feed" },
     { hash: "#/top", label: "Top" }, 
@@ -27,16 +26,21 @@ export default function Navbar({ currentHash, navigate, user }) {
         ))}
       </div>
         
-      <button className="navbar-avatar" onClick={() => navigate("#/profile")}>
-        <span className="navbar-username">{user.name}</span>
-        {user.avatar ? (
-          <img src={user.avatar} alt={user.name} />
-        ) : (
-          <span className="avatar-initials">
-            {user.name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </button>
+      <div className="navbar-right">
+        <button className="navbar-avatar" onClick={() => navigate("#/profile")}>
+          <span className="navbar-username">{user.name}</span>
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} />
+          ) : (
+            <span className="avatar-initials">
+              {user.name.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </button>
+        <button className="logout-btn" onClick={onLogout}>
+          Logout
+        </button>
+      </div>
     </nav>
   );
 }

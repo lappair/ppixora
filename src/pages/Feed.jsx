@@ -20,14 +20,11 @@ export default function Feed({ posts, setPosts, user, navigate }) {
   const [now, setNow] = useState(Date.now());
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [likes, setLikes] = useState({}); // { post_id: { count, liked } }
-  
-  // State baru untuk komentar
-  const [comments, setComments] = useState({}); // { post_id: [ {id, comment_text, user_id}, ... ] }
+  const [likes, setLikes] = useState({});
+  const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState("");
   const [activeCommentId, setActiveCommentId] = useState(null);
 
-  // Fetch posts dari Supabase
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
@@ -42,21 +39,20 @@ export default function Feed({ posts, setPosts, user, navigate }) {
       if (error) {
         console.error("Gagal fetch posts:", error);
       } else {
-        setPosts(
-          data.map((p) => ({
-            id: p.id,
-            image: p.image_url,
-            caption: p.caption,
-            authorName: p.author_name,
-            avatar: p.avatar_url,
-            // Perbaikan penting: gunakan created_at dari database agar timer 24 jam akurat
-            createdAt: new Date(p.created_at).getTime(), 
-          }))
-        );
+      setPosts(
+        data.map((p) => ({
+          id: p.id,
+          image: p.image_url,
+          caption: p.caption,
+          authorName: p.author_name,
+          avatar: p.avatar_url,
+          userId: p.user_id, // ← tambah ini
+          createdAt: new Date(p.created_at).getTime() + (7 * 60 * 60 * 1000),
+        }))
+      );
 
         const postIds = data.map((p) => p.id);
         if (postIds.length > 0) {
-          // Fetch likes untuk semua post
           const { data: likesData } = await supabase
             .from("likes")
             .select("*")
@@ -68,13 +64,12 @@ export default function Feed({ posts, setPosts, user, navigate }) {
               const postLikes = likesData.filter((l) => l.photo_id === id);
               likesMap[id] = {
                 count: postLikes.length,
-                liked: postLikes.some((l) => l.user_name === user.name),
+                liked: postLikes.some((l) => l.user_id === user.id),
               };
             });
             setLikes(likesMap);
           }
 
-          // Fetch comments untuk semua post
           const { data: commentsData } = await supabase
             .from("comments")
             .select("*")
@@ -94,9 +89,8 @@ export default function Feed({ posts, setPosts, user, navigate }) {
     };
 
     fetchPosts();
-  }, [setPosts, user.name]);
+  }, [setPosts, user.id]);
 
-  // Tick setiap menit
   useEffect(() => {
     const id = setInterval(() => {
       setNow(Date.now());
@@ -126,25 +120,20 @@ export default function Feed({ posts, setPosts, user, navigate }) {
 
   const handleLike = async (postId) => {
     const current = likes[postId] || { count: 0, liked: false };
-
     if (current.liked) {
-      const { error } = await supabase
-        .from("likes")
-        .delete()
+      await supabase.from("likes").delete()
         .eq("photo_id", postId)
-        .eq("user_name", user.name);
-      console.log("unlike error:", error);
-
+        .eq("user_id", user.id);
       setLikes((prev) => ({
         ...prev,
         [postId]: { count: prev[postId].count - 1, liked: false },
       }));
     } else {
-      const { error } = await supabase
-        .from("likes")
-        .insert({ photo_id: postId, user_name: user.name });
-      console.log("like error:", error);
-
+      await supabase.from("likes").insert({
+        photo_id: postId,
+        user_name: user.name,
+        user_id: user.id, // ← tambah ini
+      });
       setLikes((prev) => ({
         ...prev,
         [postId]: { count: (prev[postId]?.count || 0) + 1, liked: true },
@@ -152,7 +141,6 @@ export default function Feed({ posts, setPosts, user, navigate }) {
     }
   };
 
-  // Fungsi baru untuk submit komentar
   const handleAddComment = async (postId) => {
     if (!newComment.trim()) return;
 
@@ -160,12 +148,9 @@ export default function Feed({ posts, setPosts, user, navigate }) {
       .from("comments")
       .insert({
         photo_id: postId,
-        // Hapus "|| user.name" agar tidak mengirim string ke kolom integer
-        user_id: user.id, 
+        user_name: user.name,
         comment_text: newComment,
-        // Aktifkan baris di bawah ini jika kamu mau menyimpan nama user 
-        // (pastikan ada kolom 'user_name' bertipe text di tabel comments)
-        user_name: user.name 
+        user_id: user.id, // ← tambah ini
       })
       .select()
       .single();
@@ -181,27 +166,18 @@ export default function Feed({ posts, setPosts, user, navigate }) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="feed-page">
+  const inner = (
+    <div className="feed-page">
+      <header className="feed-header">
+        <h1 className="feed-title">Today's <em>flashes</em></h1>
+      </header>
+
+      {loading ? (
         <div className="feed-empty">
           <span className="empty-icon">◈</span>
           <p>Loading flashes…</p>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="feed-page">
-      <header className="feed-header">
-        <h1 className="feed-title">
-          Today's <em>flashes</em>
-        </h1>
-        <p className="feed-subtitle">Images vanish after 24 hours.</p>
-      </header>
-
-      {livePosts.length === 0 ? (
+      ) : livePosts.length === 0 ? (
         <div className="feed-empty">
           <span className="empty-icon">◈</span>
           <p>Nothing here yet.</p>
@@ -216,7 +192,6 @@ export default function Feed({ posts, setPosts, user, navigate }) {
             const urgent = pct > 85;
             const isOwner = post.authorName === user.name;
             const isConfirming = confirmId === post.id;
-            
             const postLikes = likes[post.id] || { count: 0, liked: false };
             const postComments = comments[post.id] || [];
 
@@ -224,11 +199,6 @@ export default function Feed({ posts, setPosts, user, navigate }) {
               <article key={post.id} className="post-card">
                 <div className="post-image-wrap">
                   <img src={post.image} alt={post.caption || "flash"} className="post-image" />
-                  {post.caption && (
-                    <div className="post-caption-overlay">
-                      <p>{post.caption}</p>
-                    </div>
-                  )}
                   {isOwner && (
                     <div className="post-delete-wrap">
                       {isConfirming ? (
@@ -238,9 +208,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
                           <button className="delete-confirm-no" onClick={() => setConfirmId(null)}>Batal</button>
                         </div>
                       ) : (
-                        <button className="delete-btn" onClick={() => setConfirmId(post.id)} title="Hapus post">
-                          ✕
-                        </button>
+                        <button className="delete-btn" onClick={() => setConfirmId(post.id)} title="Hapus post">✕</button>
                       )}
                     </div>
                   )}
@@ -259,22 +227,13 @@ export default function Feed({ posts, setPosts, user, navigate }) {
                   </div>
 
                   <div className="post-actions">
-                    {/* Like button */}
-                    <button
-                      className={`like-btn ${postLikes.liked ? "liked" : ""}`}
-                      onClick={() => handleLike(post.id)}
-                    >
+                    <button className={`like-btn ${postLikes.liked ? "liked" : ""}`} onClick={() => handleLike(post.id)}>
                       <span className="like-icon">{postLikes.liked ? "♥" : "♡"}</span>
                       <span className="like-count">{postLikes.count}</span>
                     </button>
 
-                    {/* Comment Toggle button */}
-                    <button 
-                      className="comment-btn" 
-                      onClick={() => setActiveCommentId(activeCommentId === post.id ? null : post.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <span className="comment-icon">💬</span>
+                    <button className="comment-btn" onClick={() => setActiveCommentId(activeCommentId === post.id ? null : post.id)}>
+                      <span>💬</span>
                       <span className="comment-count">{postComments.length}</span>
                     </button>
 
@@ -285,36 +244,39 @@ export default function Feed({ posts, setPosts, user, navigate }) {
                       <span className="timer-label">{timeLeft(post.createdAt)}</span>
                     </div>
                   </div>
-                </div>
+                </div> {/* tutup post-meta */}
 
-                {/* Comment Section (Hanya tampil jika tombol chat diklik) */}
+                {post.caption && (
+                  <div className="post-caption">
+                    <p>{post.caption}</p>
+                  </div>
+                )}
                 {activeCommentId === post.id && (
                   <div className="comment-section">
-                    <div className="comment-list" style={{ maxHeight: "150px", overflowY: "auto", padding: "12px", borderTop: "1px solid #f0f0f0" }}>
+                    <div className="comment-list">
                       {postComments.length === 0 ? (
-                        <p style={{ fontSize: "0.85rem", color: "#888", margin: 0 }}>Belum ada komentar.</p>
+                        <p className="no-comments">Belum ada komentar.</p>
                       ) : (
                         postComments.map((c) => (
-                          <div key={c.id} className="comment-item" style={{ fontSize: "0.85rem", marginBottom: "8px", lineHeight: "1.4" }}>
+                          <div key={c.id} className="comment-item">
                             <strong>{c.user_name || "User"}:</strong> {c.comment_text}
                           </div>
                         ))
                       )}
                     </div>
-                    
-                    <div className="comment-input-wrap" style={{ display: "flex", gap: "8px", padding: "10px", borderTop: "1px solid #f0f0f0", background: "#fafafa" }}>
-                      <input 
-                        type="text" 
-                        placeholder="Tambahkan komentar..." 
+                    <div className="comment-input-wrap">
+                      <input
+                        type="text"
+                        placeholder="Tambahkan komentar..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                        style={{ flex: 1, padding: "8px 12px", borderRadius: "20px", border: "1px solid #ddd", fontSize: "0.85rem", outline: "none" }}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.id)}
+                        className="comment-input"
                       />
-                      <button 
+                      <button
                         onClick={() => handleAddComment(post.id)}
                         disabled={!newComment.trim()}
-                        style={{ padding: "6px 14px", cursor: "pointer", background: newComment.trim() ? "#007bff" : "#ccc", color: "#fff", border: "none", borderRadius: "20px", fontWeight: "bold", fontSize: "0.85rem", transition: "0.2s" }}
+                        className="comment-send-btn"
                       >
                         Kirim
                       </button>
@@ -326,6 +288,18 @@ export default function Feed({ posts, setPosts, user, navigate }) {
           })}
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <div className="feed-wrapper">
+      {/* Background full width */}
+      <div className="bg-blob blob-1" />
+      <div className="bg-blob blob-2" />
+      <div className="bg-dots dots-1" />
+      <div className="bg-dots dots-2" />
+      <div className="bg-circle" />
+      {inner}
     </div>
   );
 }

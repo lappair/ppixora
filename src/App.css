@@ -3,6 +3,8 @@
 
 /* ─── Variables ──────────────────────────────────────────── */
 :root {
+  margin: 0;
+  padding: 0;
   --bg: #ddffff;  
   --surface: #f4f8ff;  
   --surface-2: #dbeeff; 
@@ -33,6 +35,8 @@
 html { scroll-behavior: smooth; }
 
 body {
+  margin: 0;
+  padding: 0;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -69,6 +73,8 @@ input, textarea {
 .app-main {
   flex: 1;
   padding-top: var(--nav-h);
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* ─── Utility ─────────────────────────────────────────────── */
