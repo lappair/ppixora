@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import "./Hashtag.css";
+import "./hashtag.css";
 
 export default function Hashtag({ tag, navigate, user }) {
   const [posts, setPosts] = useState([]);
