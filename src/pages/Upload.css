@@ -173,3 +173,35 @@
   justify-content: flex-end;
   gap: 12px;
 }
+
+@media (max-width: 600px) {
+  .upload-page {
+    padding: 28px 14px 56px;
+  }
+
+  .upload-header {
+    margin-bottom: 24px;
+  }
+
+  .drop-zone {
+    min-height: 230px;
+    padding: 40px 18px;
+  }
+
+  .preview-img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .caption-input {
+    font-size: 16px;
+  }
+
+  .upload-actions {
+    margin-top: 22px;
+  }
+
+  .upload-actions .btn-primary,
+  .upload-actions .btn-ghost {
+    flex: 1;
+  }
+}

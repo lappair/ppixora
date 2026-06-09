@@ -43,7 +43,9 @@ body {
   font-size: 15px;
   line-height: 1.6;
   min-height: 100dvh;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 img { display: block; max-width: 100%; }
@@ -61,6 +63,12 @@ input, textarea {
   border: none;
   outline: none;
   color: var(--text);
+}
+
+button,
+input,
+textarea {
+  touch-action: manipulation;
 }
 
 /* ─── Shell ──────────────────────────────────────────────── */
@@ -109,3 +117,20 @@ input, textarea {
   transition: color 0.2s, border-color 0.2s;
 }
 .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  input,
+  textarea {
+    font-size: 16px;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .app-main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

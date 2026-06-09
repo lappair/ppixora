@@ -111,3 +111,32 @@
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+@media (max-width: 600px) {
+  .hashtag-page {
+    padding: 28px 12px 56px;
+  }
+
+  .hashtag-header {
+    margin-bottom: 24px;
+  }
+
+  .hashtag-back {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .hashtag-grid {
+    gap: 16px;
+  }
+
+  .hashtag-card-meta {
+    padding: 12px;
+  }
+
+  .hashtag-card-author span,
+  .hashtag-card-caption {
+    overflow-wrap: anywhere;
+  }
+}

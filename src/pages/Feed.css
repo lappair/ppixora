@@ -122,7 +122,7 @@
 .post-image-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 3;
   background: var(--surface-2);
   overflow: hidden;
 }
@@ -135,7 +135,81 @@
   display: block;
   transition: transform 0.4s ease;
 }
-.post-card:hover .post-image { transform: scale(1.015); }
+.post-card:hover .post-image { transform: scale(1.02); }
+
+@media (max-width: 600px) {
+  .feed-page {
+    padding: 28px 12px 56px;
+  }
+
+  .feed-header {
+    margin-bottom: 24px;
+  }
+
+  .feed-title {
+    font-size: clamp(36px, 11vw, 52px);
+  }
+
+  .post-grid {
+    gap: 18px;
+  }
+
+  .post-card {
+    border-radius: 8px;
+  }
+
+  .post-meta {
+    padding: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .post-author {
+    flex: 1;
+  }
+
+  .post-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .like-btn,
+  .comment-btn {
+    min-height: 40px;
+    padding: 7px 11px;
+  }
+
+  .post-timer {
+    min-width: 92px;
+  }
+
+  .timer-bar-track {
+    width: 92px;
+  }
+
+  .post-caption {
+    padding: 0 12px 12px;
+  }
+
+  .delete-btn {
+    opacity: 1;
+  }
+
+  .comment-input-wrap {
+    padding: 10px 12px;
+  }
+
+  .comment-input {
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  .comment-send-btn {
+    min-height: 42px;
+    padding: 6px 14px;
+  }
+}
 
 .post-caption {
   padding: 0 18px 14px;

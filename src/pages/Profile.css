@@ -197,3 +197,48 @@
   transition: transform 0.3s, opacity 0.3s;
 }
 .my-post-thumb:hover img { transform: scale(1.06); opacity: 0.85; }
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 28px 14px 56px;
+  }
+
+  .profile-header {
+    margin-bottom: 24px;
+  }
+
+  .profile-card {
+    padding: 22px 18px;
+    gap: 22px;
+  }
+
+  .avatar-section {
+    gap: 18px;
+  }
+
+  .field-input {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .profile-save-row .btn-primary {
+    width: 100%;
+  }
+
+  .my-posts-section {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 380px) {
+  .avatar-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .avatar-actions {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+  }
+}

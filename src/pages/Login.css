@@ -214,11 +214,49 @@
   .auth-page { flex-direction: column; }
   .auth-left {
     flex: none;
-    padding: 80px 32px 48px;
-    min-height: 280px;
+    padding: 76px 24px 36px;
+    min-height: 230px;
   }
-  .auth-brand { left: 32px; }
-  .auth-right { padding: 40px 24px; }
+  .auth-brand {
+    top: 24px;
+    left: 24px;
+  }
+  .auth-tagline {
+    font-size: clamp(30px, 10vw, 42px);
+    margin-bottom: 12px;
+  }
+  .auth-desc {
+    font-size: 14px;
+  }
+  .auth-right {
+    flex: 1;
+    align-items: flex-start;
+    padding: 32px 20px max(32px, env(safe-area-inset-bottom));
+  }
+  .auth-form-wrap {
+    max-width: none;
+  }
+  .auth-field {
+    min-height: 50px;
+  }
+  .auth-field input {
+    font-size: 16px;
+  }
+  .auth-btn {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-left {
+    min-height: 205px;
+    padding-top: 68px;
+  }
+
+  .auth-tagline {
+    font-size: 22px;
+    max-width: 100%;
+  }
 }
 
 /* ─── Left Content ───────────────────────────────────────── */

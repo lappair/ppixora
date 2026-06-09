@@ -397,4 +397,23 @@
   .top-section {
     padding: 0.85rem;
   }
+
+  .top-title {
+    font-size: clamp(42px, 15vw, 64px);
+  }
+
+  .top-subtitle {
+    max-width: 70%;
+    font-size: 0.9rem;
+  }
+
+  .hashtag-card,
+  .top-user-card {
+    min-height: 58px;
+    padding: 0.8rem;
+  }
+
+  .top-flash-card {
+    aspect-ratio: 4 / 5;
+  }
 }

@@ -159,7 +159,9 @@
 @media (max-width: 720px) {
   .navbar {
     grid-template-columns: auto 1fr auto;
-    padding: 0 12px;
+    padding:
+      0 max(10px, env(safe-area-inset-right))
+      0 max(10px, env(safe-area-inset-left));
   }
 
   .logo-text,
@@ -174,9 +176,47 @@
   .nav-link {
     font-size: 11px;
     padding: 7px 10px;
+    min-height: 40px;
   }
 
   .logout-btn {
     padding: 7px 10px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar {
+    column-gap: 4px;
+  }
+
+  .logo-mark,
+  .navbar-avatar img,
+  .avatar-initials {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logo-mark img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .navbar-links {
+    gap: 0;
+  }
+
+  .nav-link {
+    padding: 7px 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .navbar-right {
+    gap: 6px;
+  }
+
+  .logout-btn {
+    font-size: 10px;
+    padding: 7px 8px;
   }
 }
