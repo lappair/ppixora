@@ -61,7 +61,6 @@
   position: relative;
   z-index: 2;
 }
-
 /* Blobs */
 .auth-blobs { position: absolute; inset: 0; pointer-events: none; }
 
