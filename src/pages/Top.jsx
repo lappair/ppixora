@@ -58,7 +58,7 @@ export default function Top({ navigate }) {
       <div className="top-content">
 
         {/* Top Hashtags */}
-        <section className="top-section">
+        <section className="top-section top-hashtags-section">
           <h2 className="section-title">Top Hashtags</h2>
           {topHashtags.length === 0 ? (
             <div className="top-empty">No hashtags trending yet.</div>
@@ -82,7 +82,7 @@ export default function Top({ navigate }) {
         </section>
 
         {/* Top Flashes */}
-        <section className="top-section">
+        <section className="top-section top-flashes-section">
           <h2 className="section-title">Top Flashes</h2>
           {topFlashes.length === 0 ? (
             <div className="top-empty">No flashes available yet.</div>
@@ -107,7 +107,7 @@ export default function Top({ navigate }) {
         </section>
 
         {/* Most Followed */}
-        <section className="top-section">
+        <section className="top-section top-followed-section">
           <h2 className="section-title">Most Followed</h2>
           {topFollowed.length === 0 ? (
             <div className="top-empty">No follow data yet.</div>
@@ -138,7 +138,7 @@ export default function Top({ navigate }) {
         </section>
 
         {/* Most Active */}
-        <section className="top-section">
+        <section className="top-section top-active-section">
           <h2 className="section-title">Most Active</h2>
           {topCommenters.length === 0 ? (
             <div className="top-empty">No comment data yet.</div>

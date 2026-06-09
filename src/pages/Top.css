@@ -70,9 +70,9 @@
 
 .top-content {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.2rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .top-section {
@@ -84,8 +84,34 @@
   backdrop-filter: blur(10px);
 }
 
-.top-section:nth-child(2) {
+.top-hashtags-section {
+  grid-column: 1;
+  grid-row: 1;
+  order: 1;
+}
+
+.top-followed-section {
+  grid-column: 2;
+  grid-row: 1;
+  order: 2;
+}
+
+.top-active-section {
+  grid-column: 3;
+  grid-row: 1;
+  order: 3;
+}
+
+.top-flashes-section {
   grid-column: 1 / -1;
+  grid-row: 2;
+  order: 4;
+}
+
+.top-hashtags-section,
+.top-followed-section,
+.top-active-section {
+  min-height: 320px;
 }
 
 .section-title {
@@ -175,25 +201,21 @@
 
 .top-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
 .top-flash-card {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4/5;
+  min-width: 0;
   cursor: pointer;
   border: 1px solid rgba(0, 56, 161, 0.12);
   background: var(--surface);
   box-shadow: 0 16px 34px rgba(0, 56, 161, 0.11);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.top-flash-card:first-child {
-  grid-column: span 2;
-  grid-row: span 2;
 }
 
 .top-flash-card:hover {
@@ -306,22 +328,34 @@
   text-overflow: ellipsis;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .top-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .top-section:nth-child(2) {
-    grid-column: auto;
+  .top-hashtags-section {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .top-followed-section {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .top-active-section {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 0;
+  }
+
+  .top-flashes-section {
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 
   .top-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .top-flash-card:first-child {
-    grid-column: span 1;
-    grid-row: span 1;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
   }
 }
 
@@ -345,6 +379,19 @@
 
   .top-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .top-content {
+    grid-template-columns: 1fr;
+  }
+
+  .top-hashtags-section,
+  .top-followed-section,
+  .top-active-section,
+  .top-flashes-section {
+    grid-column: 1;
+    grid-row: auto;
+    min-height: 0;
   }
 
   .top-section {
