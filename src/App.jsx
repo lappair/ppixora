@@ -131,12 +131,12 @@ export default function App() {
 
   // Dynamic route: #/hashtag/:tag
   if (hash.startsWith("#/hashtag/")) {
-    const tag = hash.replace("#/hashtag/", "");
+    const tag = decodeURIComponent(hash.replace("#/hashtag/", ""));
     return (
       <div className="app-shell">
         <Navbar currentHash={hash} navigate={navigate} user={appUser} onLogout={handleLogout} />
         <main className="app-main">
-          <Hashtag tag={tag} navigate={navigate} user={appUser} />
+          <Hashtag tag={tag} navigate={navigate} />
         </main>
       </div>
     );

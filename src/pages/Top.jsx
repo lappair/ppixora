@@ -68,7 +68,7 @@ export default function Top({ navigate }) {
                 <div
                   key={i}
                   className="hashtag-card"
-                  onClick={() => navigate(`#/hashtag/${h.tag.replace("#", "")}`)}
+                  onClick={() => navigate(`#/hashtag/${encodeURIComponent(h.tag.replace("#", ""))}`)}
                 >
                   <span className="hashtag-rank">{i + 1}</span>
                   <div className="hashtag-info">

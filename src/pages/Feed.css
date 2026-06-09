@@ -218,6 +218,31 @@
   font-size: 13px;
   color: var(--text-muted);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.caption-hashtag {
+  display: inline;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.caption-hashtag:hover,
+.caption-hashtag:focus-visible {
+  color: #0099ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.caption-hashtag:focus-visible {
+  outline: 2px solid rgba(0, 153, 255, 0.35);
+  outline-offset: 2px;
 }
 
 .post-caption-overlay {

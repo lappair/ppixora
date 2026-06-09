@@ -16,8 +16,28 @@ function expiryPercent(createdAt) {
   return Math.min((elapsed / (24 * 60 * 60 * 1000)) * 100, 100);
 }
 
+function CaptionWithHashtags({ caption, navigate }) {
+  const parts = caption.split(/(#[\p{L}\p{N}_]+)/gu);
+
+  return parts.map((part, index) => {
+    if (!part.startsWith("#")) return part;
+
+    const tag = part.slice(1);
+    return (
+      <button
+        key={`${tag}-${index}`}
+        type="button"
+        className="caption-hashtag"
+        onClick={() => navigate(`#/hashtag/${encodeURIComponent(tag)}`)}
+      >
+        {part}
+      </button>
+    );
+  });
+}
+
 export default function Feed({ posts, setPosts, user, navigate }) {
-  const [now, setNow] = useState(Date.now());
+  const [, setTimerTick] = useState(0);
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [likes, setLikes] = useState({});
@@ -92,7 +112,7 @@ export default function Feed({ posts, setPosts, user, navigate }) {
 
   // Hanya untuk update timer display, tidak hapus posts
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60_000);
+    const id = setInterval(() => setTimerTick((tick) => tick + 1), 60_000);
     return () => clearInterval(id);
   }, []);
 
@@ -239,7 +259,9 @@ export default function Feed({ posts, setPosts, user, navigate }) {
 
                 {post.caption && (
                   <div className="post-caption">
-                    <p>{post.caption}</p>
+                    <p>
+                      <CaptionWithHashtags caption={post.caption} navigate={navigate} />
+                    </p>
                   </div>
                 )}
 

@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import "./hashtag.css";
 
-export default function Hashtag({ tag, navigate, user }) {
+function captionHasTag(caption, selectedTag) {
+  const hashtags = caption?.match(/#[\p{L}\p{N}_]+/gu) || [];
+  return hashtags.some(
+    (hashtag) => hashtag.slice(1).toLocaleLowerCase() === selectedTag.toLocaleLowerCase()
+  );
+}
+
+export default function Hashtag({ tag, navigate }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,14 +28,18 @@ export default function Hashtag({ tag, navigate, user }) {
       if (error) {
         console.error("Gagal fetch hashtag posts:", error);
       } else {
-        setPosts(data.map((p) => ({
-          id: p.id,
-          image: p.image_url,
-          caption: p.caption,
-          authorName: p.author_name,
-          avatar: p.avatar_url,
-          createdAt: new Date(p.created_at).getTime(),
-        })));
+        setPosts(
+          data
+            .filter((p) => captionHasTag(p.caption, tag))
+            .map((p) => ({
+              id: p.id,
+              image: p.image_url,
+              caption: p.caption,
+              authorName: p.author_name,
+              avatar: p.avatar_url,
+              createdAt: new Date(p.created_at).getTime(),
+            }))
+        );
       }
       setLoading(false);
     };
@@ -52,6 +63,7 @@ export default function Hashtag({ tag, navigate, user }) {
         </button>
         <h1 className="hashtag-title">#{tag}</h1>
         <p className="hashtag-sub">{posts.length} {posts.length === 1 ? "flash" : "flashes"} in the last 24h</p>
+        <p className="hashtag-order">Newest flashes first</p>
       </header>
 
       {posts.length === 0 ? (
