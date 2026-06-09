@@ -3,14 +3,16 @@ import "./Navbar.css";
 export default function Navbar({ currentHash, navigate, user, onLogout }) {
   const links = [
     { hash: "#/feed", label: "Feed" },
-    { hash: "#/top", label: "Top" }, 
+    { hash: "#/top", label: "Top" },
     { hash: "#/upload", label: "Post" },
   ];
 
   return (
     <nav className="navbar">
       <button className="navbar-logo" onClick={() => navigate("#/feed")}>
-        <span className="logo-icon">◈</span>
+        <span className="logo-mark" aria-hidden="true">
+          <img src="/pixora_icon.png" alt="" />
+        </span>
         <span className="logo-text">Pixora</span>
       </button>
 
@@ -25,7 +27,7 @@ export default function Navbar({ currentHash, navigate, user, onLogout }) {
           </button>
         ))}
       </div>
-        
+
       <div className="navbar-right">
         <button className="navbar-avatar" onClick={() => navigate("#/profile")}>
           <span className="navbar-username">{user.name}</span>
