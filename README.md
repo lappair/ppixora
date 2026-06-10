@@ -93,55 +93,6 @@ ppixora/
 `-- eslint.config.js
 ```
 
-### `src/main.jsx`
-
-File ini menjadi entry point React. Komponen `App` dirender ke elemen root pada `index.html`.
-
-### `src/App.jsx`
-
-`App.jsx` adalah pusat kendali aplikasi. File ini menangani:
-
-- Pemeriksaan session login melalui `supabase.auth.getSession()`.
-- Listener perubahan autentikasi melalui `supabase.auth.onAuthStateChange()`.
-- Pengambilan profil pengguna dari tabel `profiles`.
-- Penyimpanan state `user`, `profile`, `posts`, dan `hash`.
-- Routing sederhana berbasis URL hash.
-- Logout pengguna.
-- Pengiriman props ke halaman seperti `Feed`, `Upload`, `Profile`, `Top`, dan `Hashtag`.
-
-Route yang dikelola:
-
-| Route | Komponen | Fungsi |
-| --- | --- | --- |
-| `#/feed` | `Feed.jsx` | Menampilkan flash aktif |
-| `#/upload` | `Upload.jsx` | Mengunggah flash baru |
-| `#/profile` | `Profile.jsx` | Mengelola profil pengguna |
-| `#/top` | `Top.jsx` | Menampilkan trending hashtag dan top flash |
-| `#/hashtag/:tag` | `Hashtag.jsx` | Menampilkan flash berdasarkan hashtag |
-| `#/register` | `Register.jsx` | Registrasi akun |
-
-### `src/supabaseClient.js`
-
-File ini membuat koneksi ke Supabase menggunakan Supabase URL dan anon key. Semua operasi auth, database, dan storage memakai client dari file ini.
-
-### `src/components/Navbar.jsx`
-
-Navbar berfungsi sebagai navigasi utama setelah pengguna login. Komponen ini menyediakan akses ke Feed, Top, Upload, Profile, dan Logout.
-
-### Folder `src/pages`
-
-Folder ini berisi halaman utama aplikasi:
-
-| File | Peran |
-| --- | --- |
-| `Login.jsx` | Login pengguna dengan email dan password |
-| `Register.jsx` | Registrasi pengguna dan penyimpanan username |
-| `Feed.jsx` | Menampilkan post 24 jam terakhir, like, komentar, timer, dan hapus post |
-| `Upload.jsx` | Upload gambar ke bucket `flashes` dan insert data ke tabel `posts` |
-| `Profile.jsx` | Edit display name, avatar, dan melihat flash milik user |
-| `Top.jsx` | Menghitung top hashtag dan top flash |
-| `Hashtag.jsx` | Menampilkan post berdasarkan hashtag tertentu |
-
 ## Alur Kerja Aplikasi
 
 ```text
@@ -160,6 +111,27 @@ App.jsx mengecek session Supabase
                               v
         Feed / Upload / Profile / Top / Hashtag
 ```
+## Desain Basis Data Studi Kasus
+
+Untuk kebutuhan studi kasus basis data relasional, Pixora dapat dimodelkan ke dalam delapan tabel utama. Delapan tabel ini digunakan untuk menjawab kebutuhan analitik media sosial seperti pengguna paling populer, hashtag paling tren, foto dengan engagement tertinggi, dan pengguna paling aktif berkomentar.
+
+
+## Relasi Antar Tabel
+
+```text
+users 1--n photos
+users 1--n stories
+users 1--n likes
+users 1--n comments
+users 1--n follows sebagai follower
+users 1--n follows sebagai following
+photos 1--n likes
+photos 1--n comments
+photos n--n hashtags melalui photo_hashtags
+```
+
+Secara konsep, `users` menjadi entitas pusat. Foto, story, like, komentar, dan follow semuanya terhubung ke pengguna. Hashtag dipisahkan ke tabel sendiri agar pencarian tren dapat dilakukan lebih efisien dan tidak bergantung pada parsing caption di frontend.
+
 
 ## Alur Fitur Berdasarkan Kode
 
@@ -298,134 +270,6 @@ Alur:
 3. Query Supabase mencari caption yang mengandung hashtag tersebut.
 4. Hanya post 24 jam terakhir yang ditampilkan.
 
-## Desain Basis Data Studi Kasus
-
-Untuk kebutuhan studi kasus basis data relasional, Pixora dapat dimodelkan ke dalam delapan tabel utama. Delapan tabel ini digunakan untuk menjawab kebutuhan analitik media sosial seperti pengguna paling populer, hashtag paling tren, foto dengan engagement tertinggi, dan pengguna paling aktif berkomentar.
-
-### 1. `users`
-
-Menyimpan identitas pengguna.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `user_id` | Primary key pengguna |
-| `email` | Email pengguna |
-| `username` | Nama tampilan |
-| `avatar_url` | Foto profil |
-| `is_private` | Status akun privat atau publik |
-| `created_at` | Waktu akun dibuat |
-
-Pada kode saat ini, tabel ini direpresentasikan oleh Supabase Auth dan tabel `profiles`.
-
-### 2. `photos`
-
-Menyimpan foto yang diunggah pengguna.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `photo_id` | Primary key foto |
-| `user_id` | Foreign key ke `users` |
-| `image_url` | URL gambar |
-| `caption` | Caption foto |
-| `location_name` | Lokasi foto, jika ada |
-| `created_at` | Waktu upload |
-
-Pada kode saat ini, tabel ini direpresentasikan oleh tabel `posts`.
-
-### 3. `follows`
-
-Menyimpan relasi pengikut antar pengguna.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `follow_id` | Primary key follow |
-| `follower_id` | User yang mengikuti |
-| `following_id` | User yang diikuti |
-| `status` | Status follow, misalnya pending atau accepted |
-| `created_at` | Waktu follow dibuat |
-
-Tabel ini penting untuk menjawab pertanyaan siapa pengguna yang paling banyak diikuti.
-
-### 4. `hashtags`
-
-Menyimpan daftar hashtag unik.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `hashtag_id` | Primary key hashtag |
-| `name` | Nama hashtag, contoh `travel` |
-| `created_at` | Waktu hashtag pertama dibuat |
-
-Tabel ini membuat hashtag lebih terstruktur dibanding hanya membaca teks caption.
-
-### 5. `photo_hashtags`
-
-Tabel penghubung many-to-many antara foto dan hashtag.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `photo_id` | Foreign key ke `photos` |
-| `hashtag_id` | Foreign key ke `hashtags` |
-
-Relasi ini diperlukan karena satu foto dapat memiliki banyak hashtag, dan satu hashtag dapat digunakan oleh banyak foto.
-
-### 6. `likes`
-
-Menyimpan interaksi like pada foto.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `like_id` | Primary key like |
-| `photo_id` | Foreign key ke `photos` |
-| `user_id` | Foreign key ke `users` |
-| `created_at` | Waktu like diberikan |
-
-Tabel ini dipakai untuk menghitung popularitas dan engagement foto.
-
-### 7. `comments`
-
-Menyimpan komentar pengguna pada foto.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `comment_id` | Primary key komentar |
-| `photo_id` | Foreign key ke `photos` |
-| `user_id` | Foreign key ke `users` |
-| `comment_text` | Isi komentar |
-| `created_at` | Waktu komentar dibuat |
-
-Tabel ini dipakai untuk menghitung aktivitas diskusi dan pengguna yang sering berkomentar.
-
-### 8. `stories`
-
-Menyimpan konten sementara yang hilang setelah 24 jam.
-
-| Kolom | Keterangan |
-| --- | --- |
-| `story_id` | Primary key story |
-| `user_id` | Foreign key ke `users` |
-| `image_url` | URL gambar story |
-| `caption` | Caption story |
-| `created_at` | Waktu story dibuat |
-| `expires_at` | Waktu story berakhir |
-
-Pada kode saat ini, konsep story diwakili oleh flash/post yang difilter hanya untuk 24 jam terakhir.
-
-## Relasi Antar Tabel
-
-```text
-users 1--n photos
-users 1--n stories
-users 1--n likes
-users 1--n comments
-users 1--n follows sebagai follower
-users 1--n follows sebagai following
-photos 1--n likes
-photos 1--n comments
-photos n--n hashtags melalui photo_hashtags
-```
-
-Secara konsep, `users` menjadi entitas pusat. Foto, story, like, komentar, dan follow semuanya terhubung ke pengguna. Hashtag dipisahkan ke tabel sendiri agar pencarian tren dapat dilakukan lebih efisien dan tidak bergantung pada parsing caption di frontend.
 
 ## Pertanyaan Analitik yang Dijawab Database
 
@@ -525,20 +369,6 @@ Makna query:
 - Aktivitas pengguna dapat diukur dari jumlah komentar.
 - Pengguna dengan komentar terbanyak dapat dianggap sebagai user paling aktif dalam diskusi.
 
-## Perbandingan Rancangan Studi Kasus dan Implementasi Kode
-
-| Kebutuhan Studi Kasus | Tabel Ideal | Implementasi Kode Saat Ini |
-| --- | --- | --- |
-| Data pengguna | `users` | Supabase Auth + `profiles` |
-| Foto pengguna | `photos` | `posts` |
-| Follow pengguna | `follows` | Belum diimplementasikan di UI |
-| Hashtag terstruktur | `hashtags` | Diekstrak dari caption di `Top.jsx` |
-| Relasi foto-hashtag | `photo_hashtags` | Belum menjadi tabel fisik |
-| Like foto | `likes` | Sudah digunakan di `Feed.jsx` |
-| Komentar foto | `comments` | Sudah digunakan di `Feed.jsx` |
-| Story 24 jam | `stories` | Diwakili oleh post/flash aktif 24 jam |
-
-Dengan demikian, kode React yang ada sudah memperlihatkan fitur inti seperti autentikasi, upload, feed, like, komentar, profil, hashtag, dan trending. Untuk pemodelan basis data penuh sesuai studi kasus, struktur dapat diperluas menjadi delapan tabel relasional agar seluruh kebutuhan analitik dapat dijawab langsung melalui query SQL.
 
 ## Supabase Storage
 
@@ -550,85 +380,6 @@ Selain tabel relasional, Pixora memakai storage untuk menyimpan file gambar.
 | `avatars` | Menyimpan gambar avatar pengguna |
 
 Database hanya menyimpan URL gambar, sedangkan file gambar asli disimpan di Supabase Storage.
-
-## Alur Penjelasan untuk Presentasi
-
-Berikut alur yang disarankan saat memaparkan project ke dosen.
-
-### 1. Mulai dari Studi Kasus
-
-Jelaskan bahwa Pixora adalah platform photo sharing seperti media sosial sederhana. Pengguna dapat mengunggah foto, memakai hashtag, memberi like, berkomentar, dan melihat konten populer.
-
-Tekankan bahwa project ini bukan hanya tampilan aplikasi, tetapi juga studi kasus basis data yang harus mampu mengelola relasi antar pengguna, konten, dan interaksi.
-
-### 2. Jelaskan Kebutuhan Data
-
-Sampaikan bahwa sistem harus menyimpan:
-
-- Data pengguna.
-- Data foto.
-- Data follow.
-- Data hashtag.
-- Relasi foto dan hashtag.
-- Data like.
-- Data komentar.
-- Data story 24 jam.
-
-Delapan kebutuhan ini kemudian diterjemahkan menjadi delapan tabel relasional.
-
-### 3. Jelaskan Relasi Tabel
-
-Tekankan relasi utama:
-
-- Satu user dapat mengunggah banyak foto.
-- Satu user dapat mengikuti banyak user lain.
-- Satu foto dapat memiliki banyak like.
-- Satu foto dapat memiliki banyak komentar.
-- Satu foto dapat memiliki banyak hashtag.
-- Satu hashtag dapat dipakai banyak foto.
-- Satu user dapat membuat banyak story.
-
-### 4. Hubungkan Database dengan Pertanyaan Analitik
-
-Bagian ini penting untuk menunjukkan manfaat basis data relasional.
-
-Contoh pertanyaan:
-
-- Siapa user paling populer? Dijawab dari tabel `follows`.
-- Hashtag apa yang sedang tren? Dijawab dari `hashtags` dan `photo_hashtags`.
-- Foto mana yang engagement-nya tertinggi? Dijawab dari `photos`, `likes`, dan `comments`.
-- Siapa user paling aktif berkomentar? Dijawab dari `comments`.
-
-### 5. Jelaskan Sistematika Kode
-
-Setelah basis data dijelaskan, masuk ke kode:
-
-- `App.jsx` mengatur session, route, dan state utama.
-- `Login.jsx` dan `Register.jsx` mengatur autentikasi.
-- `Feed.jsx` menampilkan post, like, komentar, dan timer.
-- `Upload.jsx` mengatur upload gambar.
-- `Profile.jsx` mengatur data profil.
-- `Top.jsx` menghitung trending.
-- `Hashtag.jsx` menampilkan konten berdasarkan hashtag.
-- `Navbar.jsx` menyediakan navigasi.
-
-### 6. Tunjukkan Demo Aplikasi
-
-Urutan demo:
-
-1. Register akun.
-2. Login.
-3. Upload foto.
-4. Lihat foto muncul di feed.
-5. Tambahkan like.
-6. Tambahkan komentar.
-7. Buka halaman Top untuk melihat trending.
-8. Buka hashtag.
-9. Ubah profil dan avatar.
-
-### 7. Tutup dengan Kelebihan dan Pengembangan
-
-Sampaikan bahwa aplikasi sudah memiliki alur dasar media sosial. Untuk pengembangan berikutnya, rancangan delapan tabel dapat diimplementasikan penuh agar fitur follow, hashtag terstruktur, dan story dapat dikelola lebih kuat di level database.
 
 ## Instalasi dan Menjalankan Project
 
@@ -685,39 +436,6 @@ VITE_SUPABASE_ANON_KEY=...
 ```
 
 Kemudian digunakan melalui `import.meta.env` agar konfigurasi tidak ditulis langsung di source code.
-
-## Kelebihan Project
-
-- Sudah menggunakan autentikasi pengguna.
-- Sudah mendukung upload gambar.
-- Sudah memiliki feed berbasis waktu 24 jam.
-- Sudah memiliki interaksi sosial berupa like dan komentar.
-- Sudah memiliki halaman trending dan hashtag.
-- Struktur kode mudah dipahami karena dipisahkan berdasarkan halaman.
-- Cocok dijadikan contoh hubungan antara aplikasi frontend dan rancangan basis data relasional.
-
-## Batasan Project
-
-- Routing masih menggunakan hash route sederhana.
-- Fitur follow belum tersedia pada UI.
-- Hashtag masih diekstrak dari caption, belum memakai tabel `hashtags` dan `photo_hashtags`.
-- Konsep story masih digabung dengan post/flash 24 jam.
-- Konfigurasi Supabase masih ditulis langsung di kode.
-- Belum ada pagination pada feed.
-- Belum ada notifikasi real-time.
-- Belum ada validasi ukuran file gambar.
-
-## Pengembangan Selanjutnya
-
-- Mengimplementasikan tabel `follows`.
-- Mengimplementasikan tabel `hashtags` dan `photo_hashtags`.
-- Memisahkan `photos` dan `stories`.
-- Menambahkan query ranking untuk popular user, trending hashtag, top engagement, dan active commenter.
-- Menambahkan React Router.
-- Menambahkan Supabase Realtime.
-- Menambahkan pagination atau infinite scroll.
-- Memindahkan konfigurasi Supabase ke environment variable.
-- Menambahkan unit test dan integration test.
 
 ## Kesimpulan
 
