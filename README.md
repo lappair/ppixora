@@ -115,6 +115,7 @@ App.jsx mengecek session Supabase
 
 Untuk kebutuhan studi kasus basis data relasional, Pixora dapat dimodelkan ke dalam delapan tabel utama. Delapan tabel ini digunakan untuk menjawab kebutuhan analitik media sosial seperti pengguna paling populer, hashtag paling tren, foto dengan engagement tertinggi, dan pengguna paling aktif berkomentar.
 
+![Diagram relasi basis data Pixora](docs/images/pixora-database-schema.png)
 
 ## Relasi Antar Tabel
 
@@ -269,7 +270,6 @@ Alur:
 2. Aplikasi membuka route `#/hashtag/:tag`.
 3. Query Supabase mencari caption yang mengandung hashtag tersebut.
 4. Hanya post 24 jam terakhir yang ditampilkan.
-
 
 ## Pertanyaan Analitik yang Dijawab Database
 
